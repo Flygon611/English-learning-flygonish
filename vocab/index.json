@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "generated": "2026-09-22T12:57:11Z",
+  "source": "KyleBing/english-vocabulary (MIT) + ECDICT (MIT)",
+  "packs": [
+    {
+      "id": "cet4",
+      "name": "四级",
+      "nameEn": "CET-4",
+      "file": "cet4.json.gz",
+      "count": 4544,
+      "desc": "大学英语四级核心词汇",
+      "difficulty": 1,
+      "bytes": 389805
+    },
+    {
+      "id": "cet6",
+      "name": "六级",
+      "nameEn": "CET-6",
+      "file": "cet6.json.gz",
+      "count": 3991,
+      "desc": "大学英语六级核心词汇",
+      "difficulty": 2,
+      "bytes": 357923
+    },
+    {
+      "id": "tem4",
+      "name": "专四",
+      "nameEn": "TEM-4",
+      "file": "tem4.json.gz",
+      "count": 4340,
+      "desc": "英语专业四级考试词汇",
+      "difficulty": 3,
+      "bytes": 422518
+    },
+    {
+      "id": "tem8",
+      "name": "专八",
+      "nameEn": "TEM-8",
+      "file": "tem8.json.gz",
+      "count": 12410,
+      "desc": "英语专业八级考试词汇",
+      "difficulty": 4,
+      "bytes": 1185633
+    },
+    {
+      "id": "ielts",
+      "name": "雅思",
+      "nameEn": "IELTS",
+      "file": "ielts.json.gz",
+      "count": 5274,
+      "desc": "雅思考试学术与生活词汇",
+      "difficulty": 5,
+      "bytes": 480160
+    },
+    {
+      "id": "toefl",
+      "name": "托福",
+      "nameEn": "TOEFL",
+      "file": "toefl.json.gz",
+      "count": 10366,
+      "desc": "托福考试核心词汇",
+      "difficulty": 6,
+      "bytes": 940136
+    }
+  ]
+}
