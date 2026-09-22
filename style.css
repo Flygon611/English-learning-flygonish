@@ -500,8 +500,6 @@ b, strong { font-weight: 700; }
   border: 1px solid var(--glass-edge);
   border-radius: var(--r); padding: 14px 16px;
   box-shadow: var(--sh);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 .ov-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
 .ov-k { font-size: 12.5px; color: var(--text-2); }
@@ -520,8 +518,6 @@ b, strong { font-weight: 700; }
   padding: 16px; color: var(--text);
   overflow: hidden;
   box-shadow: var(--sh-lg);
-  backdrop-filter: blur(12px) saturate(1.3);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
   transition: transform var(--d-standard) var(--e-out-back), box-shadow var(--d-standard) var(--e-soft);
 }
 .mode-card::before {
@@ -1349,8 +1345,6 @@ b, strong { font-weight: 700; }
   border-radius: var(--r-lg);
   padding: 22px; text-align: center;
   box-shadow: 0 18px 42px rgba(11, 43, 62, .22), inset 0 1px 0 #fff;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   overflow: hidden;
 }
 .spell-card::before {
