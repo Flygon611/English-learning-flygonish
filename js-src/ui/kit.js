@@ -184,13 +184,18 @@ export function celebrate(text, sub = '') {
       sub ? h('div', { class: 'celebrate-sub', text: sub }) : null,
     ]),
   ]);
-  for (let i = 0; i < 18; i++) {
+  // 彩色泡泡：颜色做在泡泡的高光上，动画由 .confetti 的 aero-confetti 负责
+  const hues = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#f78c6b', '#a78bfa'];
+  for (let i = 0; i < 20; i++) {
+    const c = hues[i % hues.length];
     el.append(h('i', {
       class: 'confetti',
       style: {
-        left: (Math.random() * 100).toFixed(1) + '%',
-        animationDelay: (Math.random() * 0.5).toFixed(2) + 's',
-        background: ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#f78c6b'][i % 5],
+        left: (Math.random() * 96 + 2).toFixed(1) + '%',
+        animationDelay: (Math.random() * 0.6).toFixed(2) + 's',
+        background: `radial-gradient(circle at 34% 30%, #fff, ${c} 62%, rgba(0,0,0,.15) 100%)`,
+        width: (9 + Math.random() * 8).toFixed(0) + 'px',
+        height: (9 + Math.random() * 8).toFixed(0) + 'px',
       },
     }));
   }
@@ -199,7 +204,7 @@ export function celebrate(text, sub = '') {
   setTimeout(() => {
     el.classList.remove('in');
     setTimeout(() => el.remove(), 400);
-  }, 1700);
+  }, 1800);
 }
 
 /** 屏幕震动（答错反馈）。 */

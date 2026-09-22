@@ -3,16 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#141021">
+<meta name="theme-color" content="#7fc9f5">
 <title>单词小栈 · Word Hut</title>
-<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-09-22T15:57:53Z 生成；请勿直接编辑。
+<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-09-22T16:33:45Z 生成；请勿直接编辑。
      源码在 wordgame/，改完重新运行构建脚本即可。
      本次改写了 7 处静态素材路径、注入了 window.WORDHUT_CONFIG。 -->
 <!-- 内联 favicon：避免浏览器请求 /favicon.ico 产生 404 -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b2030'/%3E%3Cpath d='M9 7h11a3 3 0 0 1 3 3v15H12a3 3 0 0 1-3-3z' fill='%23ffcc4d'/%3E%3Cpath d='M9 7h11a3 3 0 0 1 3 3v1H9z' fill='%23ff6b8a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237fc9f5'/%3E%3Ccircle cx='16' cy='13' r='7' fill='%23ffffff' opacity='.85'/%3E%3Cpath d='M4 24c4-4 8-4 12 0s8 4 12 0v8H4z' fill='%234ea83f'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+
+<!-- 漂浮泡泡层：Frutiger Aero 的环境装饰。纯装饰、pointer-events:none，
+     prefers-reduced-motion 时会被 CSS 隐藏（见 style.css 末尾）。 -->
+<div class="aero-bubbles" aria-hidden="true">
+  <i style="left:4%;  width:14px; height:14px; animation-duration:22s; animation-delay:0s"></i>
+  <i style="left:13%; width:24px; height:24px; animation-duration:30s; animation-delay:3s"></i>
+  <i style="left:22%; width:10px; height:10px; animation-duration:18s; animation-delay:7s"></i>
+  <i style="left:31%; width:34px; height:34px; animation-duration:38s; animation-delay:1.5s"></i>
+  <i style="left:40%; width:16px; height:16px; animation-duration:25s; animation-delay:9s"></i>
+  <i style="left:49%; width:11px; height:11px; animation-duration:20s; animation-delay:4.5s"></i>
+  <i style="left:58%; width:28px; height:28px; animation-duration:34s; animation-delay:11s"></i>
+  <i style="left:67%; width:13px; height:13px; animation-duration:21s; animation-delay:6s"></i>
+  <i style="left:76%; width:20px; height:20px; animation-duration:28s; animation-delay:13s"></i>
+  <i style="left:85%; width:10px; height:10px; animation-duration:19s; animation-delay:2.5s"></i>
+  <i style="left:93%; width:26px; height:26px; animation-duration:33s; animation-delay:8s"></i>
+</div>
 
 <!-- 外壳：所有界面元素由 js/ 下的 ES 模块渲染 -->
 <div id="boot" class="boot">

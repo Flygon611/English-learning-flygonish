@@ -56,7 +56,8 @@ function renderStats(app, host, bookId, words) {
     h('div', { class: 'star-dist' }, s.stars.map((n, star) => h('div', {
       class: 'sd-col', title: `${star} 星：${n} 词`,
     }, [
-      h('i', { style: { height: Math.max(2, (n / Math.max(1, ...s.stars)) * 100) + '%' } }),
+      // <u> 是"水位管"（管身），<i> 是水位 —— 见 style.css 的 .sd-col 注释
+      h('u', {}, [h('i', { style: { height: Math.max(2, (n / Math.max(1, ...s.stars)) * 100) + '%' } })]),
       h('span', { text: String(star) }),
       h('em', { text: n > 999 ? Math.round(n / 1000) + 'k' : String(n) }),
     ]))),
