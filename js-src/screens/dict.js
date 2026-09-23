@@ -200,12 +200,30 @@ export function render(app) {
     }
 
     /* --- 词源 --- */
-    if (e.etym) {
-      nodes.push(h('div', { class: 'sec-title mt' }, [
-        h('h2', { text: '词源' }),
-        h('span', { class: 'sec-note', text: '来自 Wiktionary' }),
-      ]));
-      nodes.push(h('div', { class: 'etym', text: e.etym }));
+    // 中文译文优先；英文原文收在一个折叠开关里，想核对时可以展开。
+    // 译文衍生自 Wiktionary（CC BY-SA 4.0），所以来源标注要说清楚。
+    if (e.etymZh || e.etym) {
+      const zhNode = h('div', {
+        class: 'etym', text: e.etymZh || e.etym, lang: e.etymZh ? 'zh' : 'en',
+      });
+      const note = h('span', {
+        class: 'sec-note',
+        text: e.etymZh ? '译自 Wiktionary 英文原文' : '来自 Wiktionary（英文原文）',
+      });
+      nodes.push(h('div', { class: 'sec-title mt' }, [h('h2', { text: '词源' }), note]));
+      nodes.push(zhNode);
+      if (e.etymZh && e.etym) {
+        const en = h('div', { class: 'etym etym-en', text: e.etym, hidden: true, lang: 'en' });
+        const toggle = h('button', {
+          class: 'etym-toggle', type: 'button', text: '显示英文原文',
+          onclick: () => {
+            en.hidden = !en.hidden;
+            toggle.textContent = en.hidden ? '显示英文原文' : '收起英文原文';
+            app.play('click');
+          },
+        });
+        nodes.push(toggle, en);
+      }
     } else if (e.lang === 'en') {
       nodes.push(h('div', { class: 'sec-title mt' }, [h('h2', { text: '词源' })]));
       nodes.push(h('div', { class: 'muted small', text: '这条词目在 Wiktionary 里没有词源段落。' }));

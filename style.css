@@ -1575,7 +1575,31 @@ b, strong { font-weight: 700; }
 }
 .syn-chip:hover { transform: translateY(-2px); }
 
-.etym { font-size: 14px; line-height: 1.75; color: var(--text-2); }
+/* pre-line：保留词源里的分段换行（radar、abject 这类词源分「名词义/动词义」两段），
+   但折叠多余空格。默认的 normal 会把 \n 变成空格，几个段落挤成一大段，读起来很累。 */
+.etym { font-size: 14px; line-height: 1.75; color: var(--text-2); white-space: pre-line; }
+/* 英文原文折叠区：左侧一道竖线，和中文译文区分开，不抢视觉重点 */
+.etym-en {
+  margin-top: 10px;
+  padding-left: 11px;
+  border-left: 2px solid var(--glass-line);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-3);
+  white-space: pre-line;
+}
+.etym-toggle {
+  margin-top: 9px;
+  padding: 4px 11px;
+  border: 1px solid var(--glass-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.etym-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .dict-src { margin-top: 16px; font-size: 11.5px; }
 .dict-actions { display: flex; gap: 9px; margin-top: 14px; flex-wrap: wrap; }
 .small { font-size: 12.5px; }
@@ -1886,7 +1910,7 @@ b, strong { font-weight: 700; }
   border-radius: var(--r-pill); padding: 1px 8px;
 }
 .sr-t { margin-top: 5px; font-size: 14px; color: var(--text); line-height: 1.5; }
-.sr-ex { margin-top: 7px; padding-left: 10px; border-left: 2px solid var(--line-2); }
+.sr-ex { margin-top: 7px; padding-left: 10px; border-left: 2px solid var(--glass-line); }
 .sr-x { font-size: 12.5px; color: var(--text-2); font-family: var(--font-en); }
 .sr-xm { font-size: 12.5px; color: var(--text-3); }
 .sr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex: none; }

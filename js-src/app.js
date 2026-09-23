@@ -352,7 +352,7 @@ const SCREENS = {
   home: () => import('./screens/home.js?v=f7ae5616'),
   library: () => import('./screens/library.js?v=8baf07f6'),
   search: () => import('./screens/search.js?v=7987798c'),
-  dict: () => import('./screens/dict.js?v=dcf3f927'),
+  dict: () => import('./screens/dict.js?v=2089a42b'),
   quiz: () => import('./modes/quiz.js?v=d1cb0289'),
   cards: () => import('./modes/cards.js?v=38fe724c'),
   spell: () => import('./modes/spell.js?v=db4b1607'),
