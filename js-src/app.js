@@ -2,27 +2,19 @@
 
 import { store } from './core/storage.js';
 import { allBooks, setUserBooks, userBooks } from './vocab.js';
-import { importProgress, exportProgress } from './srs.js';
+import { importProgress, exportProgress, isCorruptKey } from './srs.js';
 import { h, $, dayKey, daysBetween } from './util.js';
 import { audio } from './audio.js';
+import { music } from './music.js';
+// 默认设置/场景常量放在叶子模块里，避免各 screen 反向 import app.js 造成循环依赖
+// （那会产生第二个 App 实例，把渲染好的页面覆盖回首页 —— 见 settings-defaults.js 注释）
+import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js';
+
+// 重新导出，保持既有调用方（如 screens/settings.js 的 `from '../app.js'`）仍可用。
+// 但新代码应直接从 settings-defaults.js 取，别从这里取。
+export { DEFAULT_SETTINGS, STUDY_SCREENS };
 
 const K_STATE = 'state';
-
-export const DEFAULT_SETTINGS = {
-  sound: true,
-  volume: 0.7,
-  autoSpeak: true,      // 四选一「听音选词」题自动朗读
-  spellSound: false,    // 拼写题是否朗读（默认关，避免直接听到答案）
-  showPhonetic: true,
-  showExample: true,
-  timer: true,          // 四选一是否限时
-  accent: 'en-US',      // 朗读口音
-  spellMode: 'type',    // 'type' | 'letters'
-  masterThreshold: 5,   // 几星算掌握
-  quizSize: 10,
-  spellSize: 10,
-  cardSize: 20,
-};
 
 function freshState() {
   return {
@@ -45,6 +37,7 @@ class App {
     this.screen = 'home';
     this.screenRoot = null;
     this._dirty = false;
+    this._navToken = 0;          // 导航令牌，见 go()：防止旧导航覆盖新屏幕
   }
 
   /* ---------------- 生命周期 ---------------- */
@@ -57,6 +50,16 @@ class App {
     }
     // 掌握度
     this.progress = importProgress(store.get('progress', []));
+    // 清掉历史上被误写成 `词库|[object object]` 这类脏键（曾导致「背了却显示没背过」）。
+    // 见 js/srs.js 的 wordKey 注释。
+    let dropped = 0;
+    for (const k of Array.from(this.progress.keys())) {
+      if (isCorruptKey(k)) { this.progress.delete(k); dropped += 1; }
+    }
+    if (dropped) {
+      console.warn(`[app] 清理了 ${dropped} 条无效掌握度记录`);
+      store.set('progress', exportProgress(this.progress));
+    }
     // 用户导入的词库
     setUserBooks(store.get('userBooks', []));
     if (!this.s.currentBook) this.s.currentBook = 'cet4';
@@ -79,8 +82,42 @@ class App {
         const target = go.dataset.go;
         if (go.dataset.book) this.s.currentBook = go.dataset.book;
         this.go(target);
-      }    });
+      }
+    });
+
+    // 音乐：先同步用户设置，再等第一次用户手势解锁播放
+    this.applyMusicVolume();
+    music.setEnabled(this.st.music);
+    this._musicHintShown = false;
+
+    // 自动化测试挂钩：让测试脚本能检查真实实例的状态。
+    // 只登记一次，避免「第二个实例」把进度写乱（踩过这个坑）。
+    if (!window.__WORDHUT_APP__) window.__WORDHUT_APP__ = this;
   }
+
+  /** 音乐只有在一次真实用户手势之后才能播放（浏览器策略）。 */
+  unlockMusic() {
+    if (music.unlock()) {
+      this.markDirty();
+      return true;
+    }
+    return false;
+  }
+
+  /** 一次用户手势后解锁 WebAudio 兜底 + 背景音乐。 */
+  unlockAudio() {
+    audio.unlock();
+    this.unlockMusic();
+  }
+
+  /** 音乐音量 = 设置里的 musicVolume，并且受「音效」总开关一起管。 */
+  applyMusicVolume() {
+    // 「音效」关掉时也静音 BGM，避免出现"整体静音了但音乐还在响"的怪状态
+    music.setVolume(this.st.sound ? this.st.musicVolume : 0);
+  }
+
+  /** 给界面用的：当前是不是在学习（学习时音乐会自动停）。 */
+  isStudyScreen() { return STUDY_SCREENS.has(this.screen); }
 
   /* ---------------- 持久化 ---------------- */
 
@@ -130,7 +167,12 @@ class App {
   setSetting(key, value) {
     this.s.settings[key] = value;
     if (key === 'volume') audio.setVolume(value);
-    if (key === 'sound') audio.setMuted(!value);
+    if (key === 'sound') { audio.setMuted(!value); this.applyMusicVolume(); }
+    if (key === 'music') {
+      music.setEnabled(value);
+      if (value) music.setScene(this.isStudyScreen() ? 'study' : 'menu');
+    }
+    if (key === 'musicVolume') this.applyMusicVolume();
     // 设置是用户主动改动，立即落盘（改完就关页面也不会丢）
     this.saveAll();
   }
@@ -140,6 +182,10 @@ class App {
     audio.play(name, opts);
   }
 
+  /** 供自动化测试与设置页读取当前音乐状态（只读用途）。 */
+  get music() { return music; }
+  get sfx() { return audio; }
+
   addCoins(n) {
     this.s.coins = Math.max(0, (this.s.coins || 0) + n);
     this.markDirty();
@@ -148,8 +194,13 @@ class App {
   /* ---------------- 导航 ---------------- */
 
   async go(name, params = {}) {
+    // 导航令牌：每次 go() 都自增。异步加载模块期间如果又发生了一次导航，
+    // 旧的那次必须**放弃提交**，否则会出现「导航成功了、界面却是上一个屏幕」——
+    // 表现为「第一次点标签没反应」。实测踩过这个坑（点设置只改了标题不换内容）。
+    const token = ++this._navToken;
     const mod = await SCREENS[name]?.();
     if (!mod) { console.warn('[app] 未知屏幕', name); return; }
+    if (token !== this._navToken) return;      // 期间已有更新的导航，丢弃这次
     this.screen = name;
     this.currentParams = params;
     if (this._cleanup) { try { this._cleanup(); } catch { /* 静默 */ } this._cleanup = null; }
@@ -174,19 +225,16 @@ class App {
     this.screenRoot.scrollTop = 0;
     window.scrollTo(0, 0);
     this.updateChrome();
+    // 场景驱动 BGM：学习界面自动淡出暂停，回到菜单界面淡入恢复
+    music.setScene(STUDY_SCREENS.has(name) ? 'study' : 'menu');
   }
 
   /** 注册当前屏幕的清理函数（定时器 / 键盘监听）。 */
   onCleanup(fn) { this._cleanup = fn; }
 
   updateChrome() {
-    const titles = {
-      home: '单词小栈', library: '词库', quiz: '四选一闯关',
-      cards: '翻卡记忆', spell: '拼写填空', stats: '学习统计',
-      settings: '设置', importer: '导入词库',
-    };
     const t = $('#topbar-title');
-    if (t) t.textContent = titles[this.screen] || '单词小栈';
+    if (t) t.textContent = SCREEN_TITLES[this.screen] || '单词小栈';
     const c = $('#coin-num');
     if (c) c.textContent = String(this.s.coins || 0);
     document.querySelectorAll('.tab').forEach((el) => {
@@ -309,11 +357,12 @@ function bootProgress(i) {
 }
 
 async function boot() {
-  const t0 = performance.now();
   try {
     bootProgress(0);
     await audio.init();
     bootProgress(1);
+    // BGM 清单（没有也能跑，只是没音乐）
+    await music.init();
     // 读取词库目录（失败也不阻断，只是没有内置词库可选）
     try {
       const { loadBuiltinIndex } = await import('./vocab.js');
@@ -350,14 +399,20 @@ async function boot() {
   }
 }
 
-// 首次用户交互时解锁音频与语音
+// 首次用户交互：解锁 WebAudio 兜底 + 开始播放 BGM
+// （浏览器禁止无手势播放音频，所以音乐必须等到这一刻）
 const unlock = () => {
-  audio.unlock();
+  app.unlockAudio();
   document.removeEventListener('pointerdown', unlock);
   document.removeEventListener('keydown', unlock);
 };
-document.addEventListener('pointerdown', unlock, { once: false });
-document.addEventListener('keydown', unlock, { once: false });
+document.addEventListener('pointerdown', unlock);
+document.addEventListener('keydown', unlock);
+
+// 手机端从后台切回来时，浏览器可能已暂停音频；这里顺手恢复
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) app.unlockAudio();
+});
 
 boot();
 

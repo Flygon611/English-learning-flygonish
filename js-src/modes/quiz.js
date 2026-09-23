@@ -271,7 +271,7 @@ export function render(app) {
       session.correct += 1;
       session.combo = S.combo;
       session.bestCombo = S.bestCombo;
-      recordAnswer(app, session, q.word, true, { points: 10 + L.n * 2 });
+      recordAnswer(app, session, q.word.w, true, { points: 10 + L.n * 2 });
       app.play(S.combo >= 5 ? 'levelup' : 'confirm');
       floatText(root.querySelector('.quiz-hud') || root, `+${gain}`, 'good');
       if (S.combo > 0 && S.combo % 5 === 0) {
@@ -285,9 +285,7 @@ export function render(app) {
       session.wrong += 1;
       S.lives -= 1;
       S.lastWrong = q.word.w;
-      recordAnswer(app, session, q.word, false);
-      // 答错加时惩罚：把这个词很快再排一次
-      session.words.push(q.word);
+      recordAnswer(app, session, q.word.w, false);
       app.play('error');
       shake(root.querySelector('.quiz-main') || root);
       floatText(root.querySelector('.qcard') || root, `-${L.penalty}ms`, 'bad');

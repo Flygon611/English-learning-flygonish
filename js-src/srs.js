@@ -14,7 +14,32 @@ export const INTERVALS = [0, 10 * 60e3, 1 * 864e5, 2 * 864e5, 7 * 864e5, 21 * 86
 /** 各星级升级所需累计正确次数。 */
 export const STAR_NEED = [0, 1, 2, 3, 5, 8];
 
-export const wordKey = (bookId, w) => `${bookId}|${String(w).toLowerCase()}`;
+/**
+ * 进度表的键：`词库id|小写单词`。
+ *
+ * 这里刻意做严格校验。旧实现是 `String(w).toLowerCase()`，如果调用方误传「词条对象」
+ * 而不是单词字符串，它会**静默**生成 `cet4|[object object]` 这样的脏键 —— 词确实被
+ * 记录了，但统计查询用的是 `cet4|word`，于是界面永远显示「这个词没背过」。
+ *
+ * 这个 bug 真实发生过（quiz.js 曾把 q.word 整个对象传进来），所以现在直接抛错，
+ * 让它在开发期就炸掉，而不是变成用户看到的错误统计。
+ */
+export function wordKey(bookId, w) {
+  if (typeof w !== 'string') {
+    const what = w === null ? 'null' : Array.isArray(w) ? 'array' : typeof w;
+    const hint = (w && typeof w === 'object') ? `（字段：${Object.keys(w).slice(0, 5).join(',')}）` : '';
+    throw new TypeError(`wordKey 需要字符串，收到 ${what}${hint} —— 是不是误传了词条对象？应传 w.w。`);
+  }
+  return `${bookId}|${w.toLowerCase()}`;
+}
+
+/** 读取进度时用：不吃异常，脏键返回 null（用于清理历史数据）。 */
+export function safeWordKey(bookId, w) {
+  try { return wordKey(bookId, w); } catch { return null; }
+}
+
+/** 判断一个进度键是否是历史遗留的脏键（例如 `cet4|[object object]`）。 */
+export const isCorruptKey = (k) => typeof k === 'string' && /\[object |undefined$|null$/.test(k);
 
 export function newProgress(now = 0) {
   return { p: 0, s: 0, c: 0, ok: 0, err: 0, or: 0, last: now, next: now };

@@ -20,6 +20,13 @@ const FALLBACK = {
 /** 本地开发时的默认路径；部署产物通过 window.WORDHUT_CONFIG 覆盖。 */
 const DEFAULT_SFX_BASE = '../assets/audio/sfx/';
 const DEFAULT_SFX_MAP = '../assets/audio/sfx.json';
+/** 本游戏自己的音效覆盖层（不改动项目共用的 sfx.json）。
+ *  卡片翻动等单词小栈专属音效放在这里，资源在 wordgame/assets/audio/sfx/。 */
+const LOCAL_SFX_BASE = './assets/audio/sfx/';
+const LOCAL_SFX_MAP = './assets/audio/sfx.local.json';
+
+/** 需要从「本游戏自己的目录」加载的音效（其余走项目共用的 assets/audio/sfx/）。 */
+const LOCAL_SFX = new Set(['cardFlip', 'cardPlace']);
 
 class AudioManager {
   constructor() {
@@ -33,19 +40,36 @@ class AudioManager {
   }
 
   async init() {
+    // 1) 项目共用的音效清单
     try {
       const res = await fetch(CFG.sfxMap || DEFAULT_SFX_MAP, { cache: 'no-cache' });
       if (res.ok) {
         const j = await res.json();
         if (j && typeof j === 'object') Object.assign(this.map, j);
       }
-      this.ready = true;
-    } catch {
-      this.ready = true;   // 用兜底映射继续
-    }
+    } catch { /* 用兜底映射继续 */ }
+    // 2) 本游戏的覆盖层（卡片音效等）
+    try {
+      const res = await fetch(CFG.sfxLocalMap || LOCAL_SFX_MAP, { cache: 'no-cache' });
+      if (res.ok) {
+        const j = await res.json();
+        if (j && typeof j === 'object') {
+          for (const [k, v] of Object.entries(j)) {
+            if (k.startsWith('_') || typeof v !== 'string') continue;   // 跳过 _note 之类
+            this.map[k] = v;
+          }
+        }
+      }
+    } catch { /* 没有覆盖层也能跑 */ }
+    this.ready = true;
   }
 
-  get base() { return CFG.sfx || DEFAULT_SFX_BASE; }
+  /** 该音效应该在哪个目录取。 */
+  _baseFor(name) {
+    // 本地：wordgame/assets/audio/sfx/；部署：构建脚本注入 CFG.sfxLocal（audio/sfx-local/）
+    if (LOCAL_SFX.has(name)) return CFG.sfxLocal || LOCAL_SFX_BASE;
+    return CFG.sfx || DEFAULT_SFX_BASE;
+  }
 
   setVolume(v) { this.volume = Math.max(0, Math.min(1, v)); }
   setMuted(m) { this.muted = !!m; }
@@ -55,7 +79,7 @@ class AudioManager {
     if (!file) return null;
     let a = this.cache.get(name);
     if (!a) {
-      a = new Audio(this.base + file);
+      a = new Audio(this._baseFor(name) + file);
       a.preload = 'auto';
       this.cache.set(name, a);
     }

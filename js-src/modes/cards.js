@@ -172,7 +172,15 @@ export function render(app) {
 
     const card = h('div', {
       class: `flip-card ${S.flipped ? 'flipped' : ''}`.trim(),
-      onclick: () => { S.flipped = !S.flipped; card.classList.toggle('flipped'); app.play('page'); paintRatings(); },
+      // 翻卡用 Kenney 的卡牌滑动音（cardSlide1），而不是通用音效。
+      // 注意：原来写的是 app.play('page')，而 'page' 在音效清单里根本不存在，
+      // 于是每次翻卡都退化成 WebAudio 兜底的"哔"声。
+      onclick: () => {
+        S.flipped = !S.flipped;
+        card.classList.toggle('flipped');
+        app.play('cardFlip');
+        paintRatings();
+      },
     }, [h('div', { class: 'flip-inner' }, [front, back])]);
 
     /* 自评按钮（翻面后才可用） */

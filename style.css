@@ -95,6 +95,14 @@
 
 * { box-sizing: border-box; }
 
+html {
+  /* 始终为滚动条预留空间。
+     不这么做的话，短页面（首页/词库）没有滚动条、长页面（统计/设置）有，
+     来回切屏时整页宽度抖动 15px，内容跟着横跳 —— 手感上很像"滚动出问题了"。
+     这条在 Windows / Linux 常驻滚动条下尤其明显（本项目实测踩过）。 */
+  scrollbar-gutter: stable;
+}
+
 html, body { margin: 0; padding: 0; height: 100%; }
 
 /* ============================ 地面：天空 → 水面 ============================ */
@@ -107,7 +115,12 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* 纵向滚动交给文档本身。
+     这里**不要**设 overflow-y: hidden —— 那会让 body 变成裁切容器，
+     短屏（手机 / 矮窗口）上学习界面会被切掉且滚不动。
+     横向仍然裁掉，避免气泡层与贴纸造成横向滚动。 */
   overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(180deg,
       var(--sky-1) 0%,
@@ -187,7 +200,12 @@ body::after {
 /* 内容整体抬到泡泡层之上 */
 .app { position: relative; z-index: 1; }
 
-body.in-battle { overflow-y: hidden; }
+/* 注意：这里**曾经**是 `body.in-battle { overflow-y: hidden; }`（学习时锁滚动）。
+   它让 body 变成裁切容器：短屏上学习界面会被切掉且滚不动，所以删掉。
+   `in-battle` 这个 class 仍由 quiz/cards 模式添加，留着当状态钩子，
+   真要"进入战斗就别让背景滚"的话，应该只锁背景而不是锁内容容器。 */
+
+/* 底部有 sticky 标签栏；滚动定位时给它留出安全间距（见 .screen 的 scroll-margin-bottom） */
 
 button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -303,7 +321,7 @@ b, strong { font-weight: 700; }
 }
 .chip b { font-variant-numeric: tabular-nums; color: var(--amber-text); }
 
-.screen { flex: 1; padding-bottom: 12px; }
+.screen { flex: 1; padding-bottom: 12px; scroll-margin-bottom: 120px; }
 .screen-body { display: flex; flex-direction: column; gap: 14px; animation: aero-in var(--d-medium) var(--e-out-expo); }
 
 @keyframes aero-in {

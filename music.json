@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "note": "单词小栈主界面 BGM。scene=menu 的曲子只在非学习页面播放，进入三种玩法会自动淡出暂停。",
+  "licenseWarning": "本文件为公开部署版，只包含已核实授权、允许嵌入游戏的曲目。本地开发用的第三方 mp3 不在公开站点内。按両站条款：音频只能作为游戏一部分分发，不得单独打包再配布。",
+  "tracks": [
+    {
+      "id": "wh-ontama-title01",
+      "name": "命运的指引",
+      "file": "assets/audio/music/ontama-title01.ogg",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.42,
+      "source": "音楽の卵 http://ontama-m.com/ongaku_rpg_theme.html",
+      "credit": "takai（音楽の卵）",
+      "license": "音楽の卵 音楽素材利用規約（免费素材／商用可／允许嵌入游戏／禁止把音频单独再配布）"
+    },
+    {
+      "id": "wh-dsymphony-title01",
+      "name": "联合之心·交响进行曲",
+      "file": "assets/audio/music/dsymphony-title01.ogg",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.45,
+      "source": "龍的交響楽 https://d-symphony.com/mt_13.html",
+      "credit": "藤村ほわん（龍的交響楽 -Dragonic Symphony-）",
+      "license": "龍的交響楽 素材利用規約（署名必须／商用可／允许嵌入游戏／禁止把音频单独再配布）"
+    }
+  ]
+}

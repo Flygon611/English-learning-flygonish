@@ -1,9 +1,12 @@
-// 设置页：音效、朗读、题量、模式偏好、数据。
+// 设置页：音效、背景音乐、朗读、题量、模式偏好、数据。
 
 import { h, icon, speechSupported, englishVoices, say, fmtBytes } from '../util.js';
 import { btn, panel, toggleRow, stepper, selectRow, segmented, empty } from '../ui/kit.js';
 import { store } from '../core/storage.js';
-import { DEFAULT_SETTINGS } from '../app.js';
+// 注意：**不要**从 '../app.js' 导入 —— 那会让「打开设置页」反向加载入口模块，
+// 产生第二个 App 实例并把页面覆盖回首页（见 js/settings-defaults.js 顶部注释）。
+import { DEFAULT_SETTINGS } from '../settings-defaults.js';
+import { music } from '../music.js';
 
 export function render(app) {
   const wrap = h('div', { class: 'screen-body' });
@@ -20,7 +23,7 @@ export function render(app) {
       toggleRow('音效', '按钮、答对答错等提示音（Kenney Interface Sounds）', st.sound, (v) => set('sound', v), 'soundOn'),
       h('div', { class: 'row toggle-row' }, [
         h('div', { class: 'row-main' }, [
-          h('div', { class: 'row-label' }, [icon('musicOn', 'ico sm'), h('span', { text: '音量' })]),
+          h('div', { class: 'row-label' }, [icon('musicOn', 'ico sm'), h('span', { text: '音效音量' })]),
           h('div', { class: 'row-desc', text: `当前 ${Math.round(st.volume * 100)}%` }),
         ]),
         h('input', {
@@ -33,6 +36,44 @@ export function render(app) {
       toggleRow('自动朗读', '「听音选词」题会自动读出单词', st.autoSpeak, (v) => set('autoSpeak', v), 'note'),
       toggleRow('拼写题朗读', '开启后拼写题也会读出单词（会直接听到答案，慎开）', st.spellSound, (v) => set('spellSound', v), 'soundOn'),
     ], 'pad'));
+
+    /* ---- 背景音乐 ---- */
+    const tracks = music.tracksFor('menu');
+    host.append(panel([
+      h('div', { class: 'sec-title' }, [h('h2', { text: '背景音乐' })]),
+      toggleRow('播放 BGM', '只在首页/词库/统计/设置播放；进入三种玩法会**自动淡出暂停**，让你专注',
+        st.music, (v) => set('music', v), 'musicOn'),
+      h('div', { class: 'row toggle-row' }, [
+        h('div', { class: 'row-main' }, [
+          h('div', { class: 'row-label' }, [icon('musicOff', 'ico sm'), h('span', { text: '音乐音量' })]),
+          h('div', { class: 'row-desc', text: `当前 ${Math.round(st.musicVolume * 100)}%` }),
+        ]),
+        h('input', {
+          type: 'range', min: '0', max: '1', step: '0.05', value: String(st.musicVolume),
+          class: 'range',
+          oninput: (e) => { st.musicVolume = Number(e.target.value); app.setSetting('musicVolume', st.musicVolume); e.target.nextElementSibling.textContent = Math.round(st.musicVolume * 100) + '%'; },
+        }),
+        h('b', { class: 'range-val', text: Math.round(st.musicVolume * 100) + '%' }),
+      ]),
+      // 当前曲目 + 换一首
+      tracks.length
+        ? h('div', { class: 'row toggle-row' }, [
+            h('div', { class: 'row-main' }, [
+              h('div', { class: 'row-label' }, [icon('note', 'ico sm'), h('span', { text: '正在播放' })]),
+              h('div', { class: 'row-desc', text: music.nowPlayingName() || '（还没开始，点一下页面即可播放）' }),
+            ]),
+            h('div', { class: 'row-actions' }, [
+              btn({
+                label: '换一首', iconName: 'arrowRight', size: 'sm',
+                onclick: () => { app.unlockAudio(); music.next(); renderAll(); },
+              }),
+            ]),
+          ])
+        : empty('没有可用的 BGM 曲目（assets/audio/music.json 为空）', 'musicOff'),
+      tracks.length
+        ? h('div', { class: 'row-desc', text: `共 ${tracks.length} 首，循环播放；换一首会立刻切到另一首` })
+        : null,
+    ].filter(Boolean), 'pad'));
 
     /* ---- 朗读引擎 ---- */
     const voices = englishVoices();

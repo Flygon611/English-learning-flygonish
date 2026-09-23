@@ -89,8 +89,19 @@ export function progressOf(app, bookId, word, now = Date.now()) {
   return pr;
 }
 
-/** 记录一次作答，返回 {starBefore, starAfter, points}。 */
+/** 记录一次作答，返回 {starBefore, starAfter, points}。
+ *
+ * @param {string} word **单词字符串**（如 'abandon'），不是词条对象。
+ *   历史上这里收的是对象（写作 `word.w`），与 wordKey 的字符串约定不一致 ——
+ *   结果就是一处传对象、一处传字符串，两边都"能跑"，但进度键与统计对不上。
+ *   现在统一成字符串，并在下面显式校验。
+ */
 export function recordAnswer(app, session, word, correct, { points = 10, rating = null, now = Date.now() } = {}) {
+  if (typeof word !== 'string') {
+    const what = word === null ? 'null' : Array.isArray(word) ? 'array' : typeof word;
+    const hint = (word && typeof word === 'object') ? `（字段：${Object.keys(word).slice(0, 5).join(',')}）` : '';
+    throw new TypeError(`recordAnswer 需要单词字符串，收到 ${what}${hint} —— 是不是误传了词条对象？应传 word.w。`);
+  }
   const pr = progressOf(app, session.bookId, word, now);
   const before = pr.s || 0;
 
@@ -106,7 +117,7 @@ export function recordAnswer(app, session, word, correct, { points = 10, rating 
   // 立即落盘：掌握度是最重要的数据，不能等 15 秒的自动保存
   app.flush();
   session.answers.push({
-    w: word.w,
+    w: word,
     correct,
     star: pr.s || 0,
     rating: rating ?? null,

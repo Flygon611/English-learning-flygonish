@@ -1,0 +1,5 @@
+{
+  "_note": "单词小栈自己的音效覆盖层。加载顺序：先读项目共用的 assets/audio/sfx.json，再用本文件覆盖/补充。这样就不必去改动《单词地牢》共用的那份清单。",
+  "cardFlip": "cardSlide_001.ogg",
+  "cardPlace": "cardPlace_001.ogg"
+}
