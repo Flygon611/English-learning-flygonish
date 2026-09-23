@@ -142,45 +142,75 @@ export const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 export const speechSupported = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
 let cachedVoices = null;
+const voiceCache = new Map();
 
+/**
+ * 按语言找语音。
+ *
+ * 这里以前叫 englishVoices() 并且写死了 /^en/i 过滤 —— 结果 say(text, {lang:'ja-JP'})
+ * 在只剩英文的列表里永远找不到 ja-JP，于是退回「任意英文语音」并把它赋给 u.voice。
+ * 浏览器一旦拿到显式 voice 就用 voice 的语言，u.lang 被忽略，假名就被英文（或系统
+ * 默认的中文）嗓子念了。现在按请求语言过滤，别的一概不用。
+ */
+export function voicesFor(lang) {
+  if (!speechSupported()) return [];
+  const key = String(lang || 'en-US').toLowerCase().replace('_', '-');
+  if (voiceCache.has(key)) return voiceCache.get(key);
+  let all = [];
+  try { all = window.speechSynthesis.getVoices() || []; } catch { all = []; }
+  const base = key.split('-')[0];
+  const list = all.filter((v) => {
+    const l = String(v.lang || '').toLowerCase().replace('_', '-');
+    return l === key || l.split('-')[0] === base;
+  });
+  // 空结果不缓存：语音列表在部分浏览器是异步填充的，若在填充完成前问过一次，
+  // 缓存住空列表会让这门语言永远匹配不到（voiceschanged 也可能不触发）。
+  if (list.length) voiceCache.set(key, list);
+  return list;
+}
+
+/** 设置页的英文口音列表用。 */
 export function englishVoices() {
   if (!speechSupported()) return [];
   if (cachedVoices) return cachedVoices;
-  try {
-    cachedVoices = window.speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
-  } catch { cachedVoices = []; }
+  cachedVoices = voicesFor('en');
   return cachedVoices;
 }
 
 // 语音列表在部分浏览器异步填充
 if (speechSupported()) {
   try {
-    window.speechSynthesis.addEventListener('voiceschanged', () => { cachedVoices = null; });
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      cachedVoices = null;
+      voiceCache.clear();
+    });
   } catch { /* 静默 */ }
 }
 
 /**
- * 朗读英文单词。返回是否成功派发。
- * 读单词和读例句用不同语速（单词慢一点更清楚）。
+ * 朗读一段文本。
+ *
+ * 返回值改为对象：调用方需要区分「读出来了」和「设备根本没有这门语言的语音」，
+ * 后者不该硬塞一个别的语言的嗓子敷衍过去。
+ * @returns {{ok: boolean, exact: boolean, voice: string|null}}
  */
 export function say(text, { lang = 'en-US', rate = 0.9 } = {}) {
-  if (!speechSupported() || !text) return false;
+  if (!speechSupported() || !text) return { ok: false, exact: false, voice: null };
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(String(text));
     u.lang = lang;
     u.rate = rate;
     u.pitch = 1;
-    const vs = englishVoices();
-    if (vs.length) {
-      // 优先匹配请求的口音，其次任意英文语音
-      const want = lang.toLowerCase().replace('_', '-');
-      const exact = vs.find((v) => v.lang.toLowerCase().replace('_', '-') === want);
-      u.voice = exact || vs.find((v) => v.default) || vs[0];
-    }
+    const want = String(lang).toLowerCase().replace('_', '-');
+    const vs = voicesFor(lang);
+    const exact = vs.find((v) => String(v.lang || '').toLowerCase().replace('_', '-') === want);
+    // 只有确认是同一门语言才指定 voice；没有就留空让引擎按 u.lang 自己挑，
+    // 绝不拿别的语言的语音顶替。
+    u.voice = exact || vs.find((v) => v.default) || vs[0] || null;
     window.speechSynthesis.speak(u);
-    return true;
+    return { ok: true, exact: !!exact, voice: u.voice ? u.voice.name : null };
   } catch {
-    return false;
+    return { ok: false, exact: false, voice: null };
   }
 }

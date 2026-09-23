@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated": "2026-09-22T12:57:11Z",
-  "source": "KyleBing/english-vocabulary (MIT) + ECDICT (MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT)",
+  "source": "JDICT: JMdict (EDRDG, CC BY-SA 4.0) + jmdict-cn (CC BY-SA 4.0); levels from OpenJLPT (CC BY-SA 4.0)",
   "packs": [
     {
       "id": "cet4",
@@ -21,7 +21,7 @@
       "count": 662,
       "desc": "日语 JLPT N5（入门）",
       "difficulty": 1,
-      "bytes": 30872,
+      "bytes": 62841,
       "lang": "ja",
       "readingLabel": "假名"
     },
@@ -43,7 +43,7 @@
       "count": 632,
       "desc": "日语 JLPT N4（初级）",
       "difficulty": 2,
-      "bytes": 32918,
+      "bytes": 63651,
       "lang": "ja",
       "readingLabel": "假名"
     },
@@ -65,7 +65,7 @@
       "count": 1784,
       "desc": "日语 JLPT N3（中级）",
       "difficulty": 3,
-      "bytes": 114805,
+      "bytes": 183218,
       "lang": "ja",
       "readingLabel": "假名"
     },
@@ -84,10 +84,10 @@
       "name": "JLPT-N2",
       "nameEn": "JLPT-N2",
       "file": "n2.json.gz",
-      "count": 1793,
+      "count": 1792,
       "desc": "日语 JLPT N2（中高级）",
       "difficulty": 4,
-      "bytes": 127086,
+      "bytes": 185389,
       "lang": "ja",
       "readingLabel": "假名"
     },
@@ -106,10 +106,10 @@
       "name": "JLPT-N1",
       "nameEn": "JLPT-N1",
       "file": "n1.json.gz",
-      "count": 3463,
+      "count": 3456,
       "desc": "日语 JLPT N1（高级）",
       "difficulty": 5,
-      "bytes": 252946,
+      "bytes": 353173,
       "lang": "ja",
       "readingLabel": "假名"
     },

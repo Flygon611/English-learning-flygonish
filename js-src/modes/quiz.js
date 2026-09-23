@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js';
 import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText } from '../session.js';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js';
 import { pickDistractors, LETTERS } from '../vocab.js';
 import { renderResult } from '../screens/result.js';
 import { audio } from '../audio.js';
@@ -233,7 +233,7 @@ export function render(app) {
     paint();
 
     if (S.q.type === QUIZ_TYPE.L2T) {
-      setTimeout(() => { if (S.phase === 'ask') speakWord(S.q.word.w); }, 180);
+      setTimeout(() => { if (S.phase === 'ask') speakWord(S.q.word); }, 180);
     }
     if (app.st.timer) startTimer();
   }
@@ -448,20 +448,20 @@ export function render(app) {
       h('div', { class: 'q-label', text: q.promptLabel }),
       q.type === QUIZ_TYPE.L2T
         ? h('div', { class: 'q-listen' }, [
-            h('button', { class: 'listen-btn', type: 'button', onclick: () => speakWord(q.word.w) }, [icon('soundOn', 'ico big')]),
+            h('button', { class: 'listen-btn', type: 'button', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico big')]),
             h('span', { class: 'q-listen-tip', text: '点击喇叭再听一次（Z / 空格）' }),
           ])
         : q.type === QUIZ_TYPE.W2T
           ? h('div', { class: 'q-word' }, [
-              h('b', { text: q.prompt }),
-              h('button', { class: 'speak-btn', type: 'button', title: '朗读', onclick: () => speakWord(q.word.w) }, [icon('soundOn', 'ico sm')]),
+              h('b', { text: q.prompt, ...langAttr(session.lang) }),
+              h('button', { class: 'speak-btn', type: 'button', title: '朗读', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico sm')]),
             ])
           : h('div', { class: 'q-word cn', text: q.prompt }),
       q.type !== QUIZ_TYPE.W2T && app.st.showPhonetic && q.word.p
-        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p) })
+        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p), ...langAttr(session.lang) })
         : null,
       q.type === QUIZ_TYPE.W2T && app.st.showPhonetic && q.word.p && !inFb
-        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p) })
+        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p), ...langAttr(session.lang) })
         : null,
     ]);
 
@@ -483,7 +483,7 @@ export function render(app) {
         onclick: () => choose(i),
       }, [
         h('span', { class: 'qo-key', text: String(i + 1) }),
-        h('span', { class: 'qo-text', text: q.type === QUIZ_TYPE.T2W ? o.w : shorten(o.t, 40) }),
+        h('span', { class: 'qo-text', text: q.type === QUIZ_TYPE.T2W ? o.w : shorten(o.t, 40), ...langAttr(q.type === QUIZ_TYPE.T2W ? session.lang : 'zh') }),
         inFb && isCorrect ? icon('check', 'ico sm') : null,
         inFb && isPicked && !isCorrect ? icon('close', 'ico sm') : null,
       ]));
@@ -501,14 +501,14 @@ export function render(app) {
           h('span', { class: 'fb-star', text: `掌握 ${'★'.repeat(pr.s || 0)}${'☆'.repeat(5 - (pr.s || 0))}` }),
         ]),
         h('div', { class: 'fb-word' }, [
-          h('b', { class: 'fb-w', text: q.word.w }),
-          h('button', { class: 'speak-btn', type: 'button', title: '朗读单词', onclick: () => speakWord(q.word.w) }, [icon('soundOn', 'ico sm')]),
-          q.word.p ? h('span', { class: 'fb-p', text: `/${q.word.p}/` }) : null,
+          h('b', { class: 'fb-w', text: q.word.w, ...langAttr(session.lang) }),
+          h('button', { class: 'speak-btn', type: 'button', title: '朗读单词', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico sm')]),
+          q.word.p ? h('span', { class: 'fb-p', text: readingText(session, q.word.p), ...langAttr(session.lang) }) : null,
         ]),
         h('div', { class: 'fb-t', text: q.word.t }),
         app.st.showExample && q.word.x
           ? h('div', { class: 'fb-ex' }, [
-              h('div', { class: 'fb-x', text: q.word.x }),
+              h('div', { class: 'fb-x', text: q.word.x, ...langAttr(session.lang) }),
               q.word.xm ? h('div', { class: 'fb-xm', text: q.word.xm }) : null,
             ])
           : null,
@@ -521,9 +521,9 @@ export function render(app) {
     root.replaceChildren(h('div', { class: 'quiz-main' }, [hud, timerBar, promptEl, opts, fb]));
   }
 
-  function speakWord(w) {
+  function speakWord(word) {
     app.play('click');
-    if (!say(w, { lang: voiceLang(session) })) app.toast('系统语音不可用', 'warn', 1400);
+    speakWordShared(app, session, word);
   }
 
   /* ---------------- 键盘 ---------------- */
@@ -535,7 +535,7 @@ export function render(app) {
     if (S.phase === 'levelIntro' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); beginLevel(); return; }
     if (S.phase === 'ask') {
       if (e.key >= '1' && e.key <= '4') { e.preventDefault(); choose(Number(e.key) - 1); return; }
-      if (e.key === 'z' || e.key === 'Z' || e.key === ' ') { e.preventDefault(); speakWord(S.q.word.w); return; }
+      if (e.key === 'z' || e.key === 'Z' || e.key === ' ') { e.preventDefault(); speakWord(S.q.word); return; }
     }
     if (S.phase === 'feedback' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); clearTimers(); nextQuestion(); }
   }

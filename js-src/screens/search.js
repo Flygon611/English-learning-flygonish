@@ -3,7 +3,7 @@
 import { h, icon, say } from '../util.js';
 import { btn, panel, stars, empty, segmented } from '../ui/kit.js';
 import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js';
-import { drillSession, voiceLang, readingText } from '../session.js';
+import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js';
 
 const LIMIT = 200;
 
@@ -118,14 +118,14 @@ export function render(app) {
       const row = h('div', { class: 'search-row' }, [
         h('div', { class: 'sr-main' }, [
           h('div', { class: 'sr-head' }, [
-            h('b', { class: 'sr-w', text: w.w }),
-            w.p ? h('span', { class: 'sr-p', text: readingText({ lang: r.entry.lang }, w.p) }) : null,
+            h('b', { class: 'sr-w', text: w.w, ...langAttr(r.entry.lang) }),
+            w.p ? h('span', { class: 'sr-p', text: readingText({ lang: r.entry.lang }, w.p), ...langAttr(r.entry.lang) }) : null,
             h('span', { class: 'sr-book', text: r.entry.bookName }),
           ]),
           h('div', { class: 'sr-t', text: w.t }),
           (app.st.showExample && w.x)
             ? h('div', { class: 'sr-ex' }, [
-                h('span', { class: 'sr-x', text: w.x }),
+                h('span', { class: 'sr-x', text: w.x, ...langAttr(r.entry.lang) }),
                 w.xm ? h('span', { class: 'sr-xm', text: ` ${w.xm}` }) : null,
               ])
             : null,
@@ -137,7 +137,12 @@ export function render(app) {
               class: 'speak-btn', type: 'button', title: '朗读',
               onclick: () => {
                 app.play('click');
-                say(w.w, { lang: voiceLang({ lang: r.entry.lang }, app.st.accent) });
+                const sl = { lang: r.entry.lang };
+                // 日语念假名，汉字让 TTS 自己猜读音十有八九是错的
+                const res = say(speechText(sl, w), { lang: voiceLang(sl, app.st.accent) });
+                if (!res.exact && r.entry.lang === 'ja') {
+                  app.toast('设备未安装日语语音，暂用系统默认朗读', 'warn', 2200);
+                }
               },
             }, [icon('soundOn', 'ico sm')]),
             btn({

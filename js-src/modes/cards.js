@@ -1,8 +1,8 @@
 // 翻卡记忆：翻卡看释义 + 自评「不认识 / 模糊 / 认识 / 熟练」，按自评排复习间隔。
 
-import { h, icon, say, sleep } from '../util.js';
+import { h, icon, say, sleep, speechSupported } from '../util.js';
 import { btn, panel, stars, progressBar, floatText, empty, sectionTitle } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang } from '../session.js';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js';
 import { orderForExam } from '../srs.js';
 import { renderResult } from '../screens/result.js';
 
@@ -36,9 +36,9 @@ export function render(app) {
     paint();
   }
 
-  async function speak(w) {
+  async function speak(word) {
     app.play('click');
-    if (!say(w, { lang: voiceLang(session) })) app.toast('系统语音不可用', 'warn', 1400);
+    speakWordShared(app, session, word);
   }
 
   function rate(rating) {
@@ -151,7 +151,7 @@ export function render(app) {
       h('div', { class: 'cf-badge', text: '英文' }),
       h('button', {
         class: 'speak-btn corner', type: 'button', title: '朗读（Z / 空格）',
-        onclick: (e) => { e.stopPropagation(); speak(word.w); },
+        onclick: (e) => { e.stopPropagation(); speak(word); },
       }, [icon('soundOn', 'ico sm')]),
       h('div', { class: 'cf-word', text: word.w }),
       h('div', { class: 'cf-hint', text: '点击卡片 / 按空格 翻到背面' }),
@@ -160,12 +160,12 @@ export function render(app) {
     const back = h('div', { class: 'card-face card-back' }, [
       h('div', { class: 'cf-badge', text: '释义' }),
       h('div', { class: 'cb-word' }, [
-        h('b', { text: word.w }),
-        word.p ? h('span', { class: 'cb-phon', text: `/${word.p}/` }) : null,
+        h('b', { text: word.w, ...langAttr(session.lang) }),
+        word.p ? h('span', { class: 'cb-phon', text: readingText(session, word.p), ...langAttr(session.lang) }) : null,
       ]),
       h('div', { class: 'cf-meaning', text: word.t }),
       word.x ? h('div', { class: 'cf-ex' }, [
-        h('div', { class: 'cf-x', text: word.x }),
+        h('div', { class: 'cf-x', text: word.x, ...langAttr(session.lang) }),
         word.xm ? h('div', { class: 'cf-xm', text: word.xm }) : null,
       ]) : null,
     ]);
@@ -228,7 +228,7 @@ export function render(app) {
     if (S && S.index < session.words.length) {
       if (e.key === ' ') { e.preventDefault(); S.flipped = !S.flipped; paint(); return; }
       if (e.key >= '1' && e.key <= '4') { e.preventDefault(); rate(Number(e.key) - 1); return; }
-      if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); speak(session.words[S.index].w); return; }
+      if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); speak(session.words[S.index]); return; }
       if (e.key === 'ArrowRight') { e.preventDefault(); skip(); return; }
       if (e.key === 'Backspace') { e.preventDefault(); undo(); return; }
     }

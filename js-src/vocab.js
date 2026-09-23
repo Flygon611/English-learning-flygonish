@@ -64,6 +64,11 @@ export async function loadBuiltinIndex() {
     desc: p.desc,
     difficulty: p.difficulty,
     builtin: true,
+    // lang / readingLabel 必须带过来：丢了的话 book.lang 恒为 undefined，
+    // session.lang 就永远是 'en'，日语词库会被英文嗓子朗读、假名还会被套上
+    // 音标的斜杠 —— 这正是「日语读音不对」的根源。
+    lang: p.lang || 'en',
+    readingLabel: p.readingLabel || '音标',
   }));
   return _index;
 }

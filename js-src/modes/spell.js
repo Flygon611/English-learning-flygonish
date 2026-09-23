@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten } from '../util.js';
 import { btn, panel, progressBar, floatText, shake, hearts, stars } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText } from '../session.js';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js';
 import { normalizeSpell, isSpellCorrect, similarity, diffChars, maskWord, letterBank } from '../spell.js';
 import { renderResult } from '../screens/result.js';
 
@@ -36,9 +36,9 @@ export function render(app) {
 
   const current = () => S.queue[S.index];
 
-  async function speak(w) {
+  async function speak(word) {
     app.play('click');
-    if (!say(w, { lang: voiceLang(session) })) app.toast('系统语音不可用', 'warn', 1400);
+    speakWordShared(app, session, word);
   }
 
   function hint() {
@@ -163,10 +163,10 @@ export function render(app) {
 
     /* 题干：中文释义 */
     const card = h('div', { class: 'spell-card' }, [
-      h('div', { class: 'sc-label', text: '请拼出对应的英文单词' }),
+      h('div', { class: 'sc-label', text: session.lang === 'ja' ? '请拼出对应的日语单词' : '请拼出对应的英文单词' }),
       h('div', { class: 'sc-meaning', text: w.t }),
       w.p && app.st.showPhonetic && S.status !== 'ask'
-        ? h('div', { class: 'sc-phon', text: readingText(session, w.p) })
+        ? h('div', { class: 'sc-phon', text: readingText(session, w.p), ...langAttr(session.lang) })
         : null,
       h('div', { class: 'sc-meta' }, [
         h('span', {}, [icon(w.w.includes(' ') ? 'scroll' : 'note', 'ico xs'), h('span', { text: `${w.w.includes(' ') ? '词组' : '单词'} · ${w.w.replace(/[a-z]/gi, '·').length} 个字符` })]),
@@ -259,12 +259,12 @@ export function render(app) {
       fb.append(h('div', { class: 'sf-box ok' }, [
         h('div', { class: 'sf-head' }, [icon('check', 'ico sm'), h('b', { text: '拼写正确！' }), h('span', { class: 'fb-star', text: `掌握 ${'★'.repeat(S.lastStar?.after || 0)}${'☆'.repeat(5 - (S.lastStar?.after || 0))}` })]),
         h('div', { class: 'sf-word' }, [
-          h('b', { text: w.w }),
-          h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w.w) }, [icon('soundOn', 'ico sm')]),
-          w.p ? h('span', { class: 'muted', text: `/${w.p}/` }) : null,
+          h('b', { text: w.w, ...langAttr(session.lang) }),
+          h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w) }, [icon('soundOn', 'ico sm')]),
+          w.p ? h('span', { class: 'muted', text: readingText(session, w.p) }) : null,
         ]),
         app.st.showExample && w.x ? h('div', { class: 'fb-ex' }, [
-          h('div', { class: 'fb-x', text: w.x }),
+          h('div', { class: 'fb-x', text: w.x, ...langAttr(session.lang) }),
           w.xm ? h('div', { class: 'fb-xm', text: w.xm }) : null,
         ]) : null,
         h('div', { class: 'answer-actions' }, [
@@ -279,12 +279,12 @@ export function render(app) {
           h('i', { class: `dc ${d.kind}`, text: d.ch === ' ' ? '␣' : d.ch }))),
         h('div', { class: 'sf-answer' }, [
           h('span', { text: '正确拼写：' }),
-          h('b', { text: w.w }),
-          h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w.w) }, [icon('soundOn', 'ico sm')]),
+          h('b', { text: w.w, ...langAttr(session.lang) }),
+          h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w) }, [icon('soundOn', 'ico sm')]),
         ]),
         h('div', { class: 'sf-t', text: w.t }),
         app.st.showExample && w.x ? h('div', { class: 'fb-ex' }, [
-          h('div', { class: 'fb-x', text: w.x }),
+          h('div', { class: 'fb-x', text: w.x, ...langAttr(session.lang) }),
           w.xm ? h('div', { class: 'fb-xm', text: w.xm }) : null,
         ]) : null,
         h('div', { class: 'answer-actions' }, [
@@ -296,8 +296,8 @@ export function render(app) {
       fb.append(h('div', { class: 'sf-box bad' }, [
         h('div', { class: 'sf-head' }, [icon('info', 'ico sm'), h('b', { text: '提示用完了' })]),
         h('div', { class: 'sf-answer' }, [
-          h('span', { text: '正确拼写：' }), h('b', { text: w.w }),
-          h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w.w) }, [icon('soundOn', 'ico sm')]),
+          h('span', { text: '正确拼写：' }), h('b', { text: w.w, ...langAttr(session.lang) }),
+          h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w) }, [icon('soundOn', 'ico sm')]),
         ]),
         h('div', { class: 'sf-t', text: w.t }),
         h('div', { class: 'answer-actions' }, [
@@ -310,7 +310,7 @@ export function render(app) {
     const tools = h('div', { class: 'card-tools' }, [
       btn({ label: '提示', iconName: 'info', size: 'sm', kind: 'ghost', disabled: S.status !== 'ask', onclick: hint }),
       btn({ label: '跳过', iconName: 'arrowRight', size: 'sm', kind: 'ghost', onclick: skip }),
-      btn({ label: '朗读', iconName: 'soundOn', size: 'sm', kind: 'ghost', onclick: () => speak(w.w) }),
+      btn({ label: '朗读', iconName: 'soundOn', size: 'sm', kind: 'ghost', onclick: () => speak(w) }),
       btn({ label: '结算', iconName: 'trophy', size: 'sm', kind: 'ghost', onclick: () => finish() }),
     ]);
 
@@ -330,7 +330,7 @@ export function render(app) {
 
     // 拼写题可选用朗读
     if (app.st.spellSound && S.status === 'ask' && S.index >= 0) {
-      say(w.w, { lang: voiceLang(session), rate: 0.8 });
+      speakWordShared(app, session, w, { rate: 0.8 });
     }
   }
 
@@ -353,7 +353,7 @@ export function render(app) {
     if (typing) return;                       // 输入框里交给 input 自己处理
 
     if (S.status === 'ask') {
-      if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); speak(current().w.w); return; }
+      if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); speak(current().w); return; }
       if (e.key === 'Tab') { e.preventDefault(); hint(); return; }
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();

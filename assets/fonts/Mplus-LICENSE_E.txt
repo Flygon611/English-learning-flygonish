@@ -1,0 +1,14 @@
+M+ FONT LICENSE (LICENSE_E)
+
+These fonts are free software.
+Unlimited permission is granted to use, copy, and distribute them, with or
+without modification, either commercially or noncommercially.
+THESE FONTS ARE PROVIDED "AS IS" WITHOUT WARRANTY.
+
+--- 出处 / source ---
+M+ FONTS PROJECT (Coji Morishita)  https://mplusfonts.github.io
+旧配布元: http://mplus-fonts.osdn.jp
+许可证正文核对来源: ScanCode LicenseDB "m-plus" (SPDX: mplus)
+  https://scancode-licensedb.aboutcode.org/m-plus.html
+日文版 LICENSE_J 与英文版 LICENSE_E 内容一致；07やさしさゴシック 的官方压缩包内
+同时附有 LICENSE_J 与 LICENSE_E 两个文件。

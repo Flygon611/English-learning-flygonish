@@ -2,8 +2,9 @@
 
 import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js';
 import { btn, panel, statBox, progressBar, stars, empty, sectionTitle } from '../ui/kit.js';
-import { getWords, letterBreakdown, letterOf, downloadText } from '../vocab.js';
+import { getWords, letterBreakdown, letterOf, downloadText, findBook } from '../vocab.js';
 import { statsOf, wordKey, MAX_STAR, isNew } from '../srs.js';
+import { readingText, langAttr } from '../session.js';
 import { store } from '../core/storage.js';
 
 export function render(app) {
@@ -32,6 +33,7 @@ export function render(app) {
 }
 
 function renderStats(app, host, bookId, words) {
+  const bk = findBook(bookId) || { lang: 'en' };
   const th = app.st.masterThreshold || MAX_STAR;
   const s = statsOf(words, app.progress, bookId, th);
   const now = Date.now();
@@ -108,8 +110,8 @@ function renderStats(app, host, bookId, words) {
     for (const { w, pr } of topWrong) {
       list.append(h('div', { class: 'wrong-row' }, [
         h('div', { class: 'wr-main' }, [
-          h('b', { class: 'wr-w', text: w.w }),
-          h('span', { class: 'wr-p', text: w.p ? `/${w.p}/` : '' }),
+          h('b', { class: 'wr-w', text: w.w, ...langAttr(bk && bk.lang) }),
+          h('span', { class: 'wr-p', text: readingText(bk, w.p) }),
           h('span', { class: 'wr-t', text: w.t }),
         ]),
         h('div', { class: 'wr-right' }, [

@@ -163,6 +163,18 @@ export function render(app) {
           h('span', { class: 'muted', text: '· 「命运的指引」「联合之心·交响进行曲」—— takai（音楽の卵）、藤村ほわん（龍的交響楽），' }),
           h('span', { class: 'muted', text: '两站条款均允许嵌入游戏，但禁止把音频单独再打包分发' }),
         ]),
+        h('li', {}, [
+          h('span', { text: '字体：中文与拉丁「檎风黑体 Alt CHS」（SIL OFL 1.1）；日文「07やさしさゴシック」（M+ FONT LICENSE + IPA フォントライセンス v1.0）。' }),
+          h('br'),
+          // IPA 字体许可要求让服务器使用者能看到许可证，所以这里给出可直接打开的正文链接，
+          // 而不是只写「见仓库文件」。移除这些链接前请重新确认该条要求。
+          h('span', { class: 'muted', text: '两款字体均原样分发（未子集化、未转换、未改名）。许可正文：' }),
+          h('a', { class: 'lic-link', href: './assets/fonts/OFL-1.1.txt', target: '_blank', rel: 'noopener', text: 'OFL 1.1' }),
+          h('span', { class: 'muted', text: ' · ' }),
+          h('a', { class: 'lic-link', href: './assets/fonts/IPA-Font-License-1.0.txt', target: '_blank', rel: 'noopener', text: 'IPA フォントライセンス v1.0' }),
+          h('span', { class: 'muted', text: ' · ' }),
+          h('a', { class: 'lic-link', href: './assets/fonts/Mplus-LICENSE_E.txt', target: '_blank', rel: 'noopener', text: 'M+ FONT LICENSE' }),
+        ]),
         h('li', { class: 'muted', text: '完整署名与授权依据见仓库根目录 CREDITS.md。' }),
       ]),
     ], 'pad'));

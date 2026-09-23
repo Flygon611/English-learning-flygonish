@@ -3,7 +3,9 @@
    风格取向：2004–2010 年那种「乐观科技 + 自然」的视觉语言 ——
    天空蓝 / 水面 / 玻璃 / 泡泡 / 草地绿，柔和高光加拟真反射。
 
-   字体：全部使用系统自带字体（中文微软雅黑，西文 Segoe UI），不引入网络字体。
+   字体：中文与拉丁用「檎风黑体 Alt CHS」，日文用「07やさしさゴシック」。
+   两款字体均原样自托管（未子集化、未转换格式、未改名），许可与出处见
+   wordgame/assets/fonts/README.md，正文随附于同目录。
 
    配色说明（重要）：
    本项目的设计库（ui-ux-pro-max）里没有 Frutiger Aero 这个 archetype，
@@ -13,6 +15,50 @@
      - 白色玻璃面板承载内容（保证正文对比度）
      - 琥珀色作为唯一暖色强调（对应设计库 Weather App 的 sky blue + sun amber）
    ============================================================================ */
+
+/* ============================ 自托管网页字体 ============================
+   两款字体都按原样分发：未子集化、未转换格式（仍是 TTF）、未改字体内部名称。
+   许可证正文随附在 wordgame/assets/fonts/ 下：
+
+     檎风黑体 Alt CHS  ——  SIL Open Font License 1.1  →  fonts/OFL-1.1.txt
+     07やさしさゴシック ——  M+ FONT LICENSE            →  fonts/Mplus-LICENSE_E.txt
+                            IPA フォントライセンス v1.0 →  fonts/IPA-Font-License-1.0.txt
+
+   为什么不做子集化：IPA 许可第 1 条第 3 项把「取出字体信息另行生成」也算作派生程序，
+   一旦派生就要履行第 3 条第 1 项（提供可再修改的原始形式、提供还原手段、不得沿用原名）。
+   原样分发只需满足第 3 条第 2 项三条：不改名、不改动、随附许可副本 —— 已经满足。
+   代价是首次加载要下 17.7 MB，换来的是任何用户导入的词表都不会出现缺字方框。 */
+
+@font-face {
+  font-family: "Qyn Flavor Grotesk Alt CHS";
+  src: url("./assets/fonts/QynFlavorAltCHS-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "07YasashisaGothic";
+  src: url("./assets/fonts/07YasGothic-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  /* 只认领日文范围，故意不包含 ASCII：
+     日文串里的英文/数字/半角符号会落到下一顺位的檎风黑体。 */
+  unicode-range: U+3000-303F, U+3040-309F, U+30A0-30FF, U+3400-4DBF, U+4E00-9FFF,
+                 U+F900-FAFF, U+FF00-FFEF, U+20000-2FA1F;
+}
+
+/* 语言决定字形。
+   这里必须是 :lang() 而不是某个容器 class —— 同一张卡片里日文词头与中文释义并存，
+   用容器级别切换会让中文用上日文字形（汉字写法中日有别），反之亦然。
+   只声明日文：中文/拉丁沿用各自的 --font / --font-en，两者都以檎风黑体开头。
+   注意选择器写成 :root :lang(ja)（特异性 0,2,0）：组件里那些 `.q-phon{font-family:var(--font-en)}`
+   之类是 (0,1,0)，如果只用 :lang(ja) 就会被它们按源码顺序盖掉 —— 实测出现过
+   假名「かぜ」被中文字体渲染。 */
+:root :lang(ja) {
+  font-family: var(--font-ja);
+}
 
 :root {
   /* ---- 基础色（天空 / 水面 / 草地） ---- */
@@ -73,9 +119,19 @@
   --sh-lg: 0 14px 40px rgba(11, 43, 62, .18), 0 1px 0 rgba(255, 255, 255, .95) inset;
   --sh-gloss: 0 8px 24px rgba(11, 43, 62, .16);
 
-  --font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
-          "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans CJK SC", sans-serif;
-  --font-en: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* ---- 字体 ----
+     中文 + 拉丁 + 国际音标：檎风黑体 Alt CHS（OFL 1.1）
+     日文：07やさしさゴシック（M+ FONT LICENSE + IPA フォントライセンス v1.0）
+     两款都原样自托管，未做子集化/格式转换/改名 —— 许可与出处见 assets/fonts/README.md。
+
+     日文字体用 unicode-range 排除了 ASCII 区，所以日文句子里的英文与数字会落到
+     下一顺位的檎风黑体，正好对应「英文用檎风黑体」这条要求。 */
+  --font: "Qyn Flavor Grotesk Alt CHS", "Microsoft YaHei UI", "Microsoft YaHei",
+          "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  --font-ja: "07YasashisaGothic", "Qyn Flavor Grotesk Alt CHS", "Yu Gothic UI",
+             "Hiragino Sans", "Microsoft YaHei UI", "Noto Sans CJK JP", sans-serif;
+  --font-en: "Qyn Flavor Grotesk Alt CHS", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* 等宽保留系统字体：拼写模式的字母格靠它对齐 */
   --font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
 
   /* ---- 动效令牌（取自 motion-web 的 motion-tokens.md，至少三档，不用单一 0.3s） ---- */
@@ -1433,6 +1489,15 @@ b, strong { font-weight: 700; }
   animation: aero-pop var(--d-fast) var(--e-out-back);
 }
 .tk.empty { width: auto; padding: 0 12px; font-family: var(--font); font-size: 12.5px; color: var(--text-3); background: transparent; border: 0; box-shadow: none; animation: none; }
+
+/* 设置页「关于」里的许可证链接（IPA 字体许可要求服务器使用者能看到许可证） */
+.lic-link {
+  color: #0f5f86;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+.lic-link:hover { color: #0a4560; }
 .letter-bank { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 .bank-key {
   width: 40px; height: 44px; border-radius: var(--r-sm);

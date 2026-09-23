@@ -2,6 +2,7 @@
 // 三种模式（四选一 / 翻卡 / 拼写）共用这里加载词表、维护掌握度、收集成绩。
 
 import { getWords, resolveWords, findBook } from './vocab.js';
+import { say } from './util.js';
 import {
   orderForExam, newProgress, wordKey, MAX_STAR, isDue, isNew,
   recordCorrect, recordWrong, recordRating, statsOf, dueCount,
@@ -24,6 +25,45 @@ export function voiceLang(session, fallbackAccent = 'en-US') {
 export function readingText(session, p) {
   if (!p) return '';
   return session && session.lang === 'ja' ? p : `/${p}/`;
+}
+
+/**
+ * 朗读念什么。
+ * 日语念假名：TTS 遇到汉字经常自己猜读音，生、今日、一日 这类词十有八九念错；
+ * 词库里既然有假名，就直接念假名。英文照旧念原词。
+ */
+export function speechText(session, word) {
+  if (!word) return '';
+  if (session && session.lang === 'ja' && word.p) return word.p;
+  return word.w || '';
+}
+
+/**
+ * 给纯日文文本元素加 lang="ja"，让 CSS 用日文字体。
+ * 只有真正是日文的元素才加：中文元素保持页面默认的 zh，
+ * 否则中文会套上日文字形（汉字写法中日不同，混排会很脏）。
+ * 返回 null 时 h() 会跳过该属性。
+ */
+export function langAttr(lang) {
+  return lang === 'ja' ? { lang: 'ja' } : null;
+}
+
+/** 会话里当前词库的语言（'ja' / 'en'）。 */
+export function sessionLang(session) {
+  return session && session.lang === 'ja' ? 'ja' : 'zh';
+}
+
+/**
+ * 朗读一个词条，并把「设备没有这门语言的语音」如实告诉用户。
+ * @returns {{ok: boolean, exact: boolean}}
+ */
+export function speakWord(app, session, word, opts = {}) {
+  const res = say(speechText(session, word), { lang: voiceLang(session), ...opts });
+  if (!res.ok) { app.toast('系统语音不可用', 'warn', 1400); return res; }
+  if (!res.exact && session && session.lang === 'ja') {
+    app.toast('设备未安装日语语音，暂用系统默认朗读', 'warn', 2200);
+  }
+  return res;
 }
 
 /** 会话对象结构（供各模式读写）：
