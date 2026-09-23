@@ -8,7 +8,7 @@ import { audio } from './audio.js?v=6550a8e0';
 import { music } from './music.js?v=bb44cee2';
 // 默认设置/场景常量放在叶子模块里，避免各 screen 反向 import app.js 造成循环依赖
 // （那会产生第二个 App 实例，把渲染好的页面覆盖回首页 —— 见 settings-defaults.js 注释）
-import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=9a1ebd43';
+import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=bd013da3';
 
 // 重新导出，保持既有调用方（如 screens/settings.js 的 `from '../app.js'`）仍可用。
 // 但新代码应直接从 settings-defaults.js 取，别从这里取。

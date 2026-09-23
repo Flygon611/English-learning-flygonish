@@ -5,7 +5,7 @@ import { btn, panel, toggleRow, stepper, selectRow, segmented, empty } from '../
 import { store } from '../core/storage.js?v=c9ee2a15';
 // 注意：**不要**从 '../app.js' 导入 —— 那会让「打开设置页」反向加载入口模块，
 // 产生第二个 App 实例并把页面覆盖回首页（见 js/settings-defaults.js 顶部注释）。
-import { DEFAULT_SETTINGS } from '../settings-defaults.js?v=9a1ebd43';
+import { DEFAULT_SETTINGS } from '../settings-defaults.js?v=bd013da3';
 import { music } from '../music.js?v=bb44cee2';
 
 export function render(app) {
