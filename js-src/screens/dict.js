@@ -175,7 +175,11 @@ export function render(app) {
           ]),
         ]);
         if (s.en) li.append(h('div', { class: 'se-en', text: s.en }));
-        if (s.ex) {
+        if (s.ex && !s.exJunk) {
+          // 中文译文放在英文例句下面单独一行（.se-ex 是纵向 flex）。
+          // exJunk 的例句不是句子（Wiktionary 里的「近义词：X」提示、
+          // 「for quotations see Citations:X」指路、光秃秃的短语），不显示；
+          // 这些义项会由新造的例句补上，补上后 exJunk 就是 false。
           li.append(h('div', { class: 'se-ex' }, [
             h('span', { class: 'se-x', text: s.ex, ...langAttr(e.lang) }),
             s.exZh ? h('span', { class: 'se-xm', text: s.exZh, ...langAttr('zh') }) : null,
