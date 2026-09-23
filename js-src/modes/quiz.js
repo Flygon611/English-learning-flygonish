@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js?v=4e5abe9c';
 import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js?v=2f24ea8c';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=26ba47b3';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=c98f7362';
 import { pickDistractors, LETTERS } from '../vocab.js?v=4c022754';
 import { renderResult } from '../screens/result.js?v=9bcc5429';
 import { audio } from '../audio.js?v=6550a8e0';
@@ -171,11 +171,44 @@ export function render(app) {
 
     // needZh：中文题面不许出现英文选项（日语词库约 10% 词条没取到中文释义）
     const needZh = session.lang === 'ja' && !!w.zhSource && w.zhSource !== 'none';
-    const distractors = pickDistractors(session.pool, w, 3, S.r, { sensesOverlap, needZh });
-    while (distractors.length < 3) {
-      // 极端情况（词库太小）兜底：放宽重复限制
+    // 题面用词随词库语言变化 —— 日语词库里写"英文单词"是错的（实测出现过
+    // 「选出对应的英文单词」配 塩/店/五/なぜ 这种自相矛盾的题面）
+    const ja = session.lang === 'ja';
+    // 五十音词库的「释义」就是罗马字，题面写成「中文释义」会自相矛盾
+    const romaji = ja && session.readingLabel === '罗马字';
+    /* 中日同形词（雨 / 学校 / 花瓶…共 292 条，占日语词条 3.5%）：释义与词头是同一串字，
+       「看中文选日语」等于把答案摆在选项里。这类词改问**假名读音**，那才是要学的东西。 */
+    const cognate = ja && !!w.t && w.t === w.w;
+
+    /* 选项里出什么：'w' = 词头、't' = 释义、'p' = 读音。
+       必须在挑干扰项**之前**定下来 —— 干扰项要按这个字段去重。 */
+    let optionField = type === QUIZ_TYPE.T2W ? 'w' : 't';
+    let showPromptWord = type === QUIZ_TYPE.W2T;
+    if (type === QUIZ_TYPE.L2T && romaji) optionField = 'w';          // 五十音听力题：选假名
+    if (cognate && type !== QUIZ_TYPE.L2T && w.p) {                    // 同形词：选读音
+      optionField = 'p';
+      showPromptWord = true;
+    }
+    const valueOf = (x) => (optionField === 'w' ? x.w : optionField === 'p' ? x.p : x.t);
+
+    let distractors = pickDistractors(session.pool, w, cognate ? 8 : 3, S.r, { sensesOverlap, needZh });
+    /* 干扰项的显示文字必须互不相同，也不能等于正确答案的文字。
+       「看汉字选假名」这类题目四个选项就是读音，出现同音词会让题目无解。 */
+    const seenValues = new Set([valueOf(w)]);
+    distractors = distractors.filter((d) => {
+      const v = d.word ? valueOf(d.word) : null;
+      if (!v || seenValues.has(v)) return false;
+      seenValues.add(v);
+      return true;
+    }).slice(0, 3);
+    /* 兜底补足（词库很小或候选都被过滤掉了）。加尝试上限，避免候选池不足时死循环。 */
+    for (let tries = 0; distractors.length < 3 && tries < session.pool.length * 2; tries += 1) {
       const cand = session.pool[Math.floor(S.r() * session.pool.length)];
-      if (cand && cand.w !== w.w) distractors.push({ value: cand.t, word: cand });
+      if (!cand || cand.w === w.w) continue;
+      const v = valueOf(cand);
+      if (!v || seenValues.has(v)) continue;
+      seenValues.add(v);
+      distractors.push({ value: v, word: cand });
     }
     const options = [w, ...distractors.map((d) => d.word)];
     for (let i = options.length - 1; i > 0; i--) {
@@ -196,20 +229,25 @@ export function render(app) {
     // 测试脚本据此知道正确答案，才能「自动打穿 5 关」做回归（见 tools/check_wordgame_browser.mjs）。
     // 正常游玩不受影响（纯读取，无副作用）。
     window.__WORDHUT_TEST__ = { session, q, state: S };
-    // 题面用词随词库语言变化 —— 日语词库里写"英文单词"是错的（实测出现过
-    // 「选出对应的英文单词」配 塩/店/五/なぜ 这种自相矛盾的题面）
-    const ja = session.lang === 'ja';
-    // 五十音词库的「释义」就是罗马字，题面写成「中文释义」会自相矛盾
-    const romaji = ja && session.readingLabel === '罗马字';
+    /* 题面文案与选项字段（optionField / showPromptWord 已在上面按题型定好）。 */
+    q.optionField = optionField;
+    q.showPromptWord = showPromptWord;
     if (type === QUIZ_TYPE.L2T) {
-      q.prompt = '';
-      q.promptLabel = romaji ? '听发音，选出对应的读音' : '听发音，选出对应的中文释义';
+      // 五十音：题面显示罗马字、选项出假名；其余词库：只放音，选中文释义
+      q.prompt = romaji ? w.p : '';
+      q.promptLabel = romaji ? '听发音，选出对应的假名' : '听发音，选出对应的中文释义';
     } else if (type === QUIZ_TYPE.W2T) {
       q.prompt = w.w;
       q.promptLabel = romaji ? '选出正确的读音' : '选出正确的中文释义';
     } else {
       q.prompt = shorten(w.t, 60);
       q.promptLabel = ja ? '选出对应的日语单词' : '选出对应的英文单词';
+    }
+    /* 中日同形词改问读音：题面给汉字，选项是四个不同的假名读音。
+       否则「选出对应的日语单词」这道题的题面与正确选项字面完全一样（如 花瓶）。 */
+    if (cognate && type !== QUIZ_TYPE.L2T && w.p) {
+      q.prompt = w.w;
+      q.promptLabel = '选出正确的假名读音';
     }
     return q;
   }
@@ -446,12 +484,22 @@ export function render(app) {
         ])
       : null;
 
+    /* 「读音提示」绝不能等于答案，也不能等于题面 —— 那样它不是提示，是答案。
+       两种真实情况：
+         * 五十音词库的释义与读音都是罗马字（t === p），显示读音 = 把选项念给用户听；
+         * 日语里「テーブル」「いつ」这类纯假名词条 p === w，T2W 题的正确答案就是 w，
+           把读音显示出来同样等于给答案（实测泄露过 2 处）。 */
+    const answerText = q.optionField === 'w' ? q.word.w : q.optionField === 'p' ? q.word.p : q.word.t;
+    const promptText = q.prompt || '';
+    const phonHint = q.word.p && q.word.p !== answerText && q.word.p !== promptText ? q.word.p : '';
     const promptEl = h('div', { class: 'qcard' }, [
       h('div', { class: 'q-label', text: q.promptLabel }),
       q.type === QUIZ_TYPE.L2T
         ? h('div', { class: 'q-listen' }, [
             h('button', { class: 'listen-btn', type: 'button', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico big')]),
             h('span', { class: 'q-listen-tip', text: '点击喇叭再听一次（Z / 空格）' }),
+            // 五十音的听力题把罗马字显示出来，让用户去认假名
+            q.prompt ? h('div', { class: 'q-listen-word', text: q.prompt }) : null,
           ])
         : q.type === QUIZ_TYPE.W2T
           ? h('div', { class: 'q-word' }, [
@@ -459,11 +507,11 @@ export function render(app) {
               h('button', { class: 'speak-btn', type: 'button', title: '朗读', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico sm')]),
             ])
           : h('div', { class: 'q-word cn', text: q.prompt }),
-      q.type !== QUIZ_TYPE.W2T && app.st.showPhonetic && q.word.p
-        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p), ...langAttr(session.lang) })
+      !q.showPromptWord && app.st.showPhonetic && phonHint
+        ? h('div', { class: 'q-phon', text: readingText(session, phonHint), ...langAttr(session.lang) })
         : null,
-      q.type === QUIZ_TYPE.W2T && app.st.showPhonetic && q.word.p && !inFb
-        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p), ...langAttr(session.lang) })
+      q.showPromptWord && app.st.showPhonetic && phonHint && !inFb
+        ? h('div', { class: 'q-phon', text: readingText(session, phonHint), ...langAttr(session.lang) })
         : null,
     ]);
 
@@ -485,7 +533,11 @@ export function render(app) {
         onclick: () => choose(i),
       }, [
         h('span', { class: 'qo-key', text: String(i + 1) }),
-        h('span', { class: 'qo-text', text: q.type === QUIZ_TYPE.T2W ? o.w : shorten(o.t, 40), ...langAttr(q.type === QUIZ_TYPE.T2W ? session.lang : 'zh') }),
+        h('span', {
+          class: 'qo-text',
+          text: q.optionField === 'w' ? o.w : q.optionField === 'p' ? o.p : shorten(o.t, 40),
+          ...langAttr(q.optionField === 't' ? 'zh' : session.lang),
+        }),
         inFb && isCorrect ? icon('check', 'ico sm') : null,
         inFb && isPicked && !isCorrect ? icon('close', 'ico sm') : null,
       ]));

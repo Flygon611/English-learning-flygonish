@@ -2,7 +2,7 @@
 
 import { h, icon, say } from '../util.js?v=4e5abe9c';
 import { btn, panel, statBox, progressBar, empty } from '../ui/kit.js?v=2f24ea8c';
-import { bookOverview } from '../session.js?v=26ba47b3';
+import { bookOverview } from '../session.js?v=c98f7362';
 import { audio } from '../audio.js?v=6550a8e0';
 
 export function render(app) {

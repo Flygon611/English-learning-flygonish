@@ -30,11 +30,14 @@ export function readingText(session, p) {
 /**
  * 朗读念什么。
  * 日语念假名：TTS 遇到汉字经常自己猜读音，生、今日、一日 这类词十有八九念错；
- * 词库里既然有假名，就直接念假名。英文照旧念原词。
+ * 词库里既然有假名，就直接念假名。
+ * ⚠ 但五十音词库的 p 是**罗马字**不是假名（あ 的 p 是 "a"），照 p 念就成了念拉丁字母 ——
+ * 所以先确认 p 里真的有假名，否则念词头本身。英文照旧念原词。
  */
 export function speechText(session, word) {
   if (!word) return '';
-  if (session && session.lang === 'ja' && word.p) return word.p;
+  const p = word.p || '';
+  if (session && session.lang === 'ja' && p && /[\u3040-\u30ff]/.test(p)) return p;
   return word.w || '';
 }
 

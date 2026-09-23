@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten } from '../util.js?v=4e5abe9c';
 import { btn, panel, progressBar, floatText, shake, hearts, stars } from '../ui/kit.js?v=2f24ea8c';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=26ba47b3';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=c98f7362';
 import { normalizeSpell, isSpellCorrect, similarity, diffChars, maskWord, letterBank } from '../spell.js?v=5a536d8a';
 import { renderResult } from '../screens/result.js?v=9bcc5429';
 
