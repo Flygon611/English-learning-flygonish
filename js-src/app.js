@@ -3,12 +3,12 @@
 import { store } from './core/storage.js?v=c9ee2a15';
 import { allBooks, setUserBooks, userBooks } from './vocab.js?v=4c022754';
 import { importProgress, exportProgress, isCorruptKey } from './srs.js?v=e54c36c9';
-import { h, $, dayKey, daysBetween } from './util.js?v=4e5abe9c';
+import { h, $, dayKey, daysBetween } from './util.js?v=1b053a4f';
 import { audio } from './audio.js?v=6550a8e0';
 import { music } from './music.js?v=bb44cee2';
 // 默认设置/场景常量放在叶子模块里，避免各 screen 反向 import app.js 造成循环依赖
 // （那会产生第二个 App 实例，把渲染好的页面覆盖回首页 —— 见 settings-defaults.js 注释）
-import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=a055409f';
+import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=9a1ebd43';
 
 // 重新导出，保持既有调用方（如 screens/settings.js 的 `from '../app.js'`）仍可用。
 // 但新代码应直接从 settings-defaults.js 取，别从这里取。
@@ -351,7 +351,8 @@ class App {
 const SCREENS = {
   home: () => import('./screens/home.js?v=f7ae5616'),
   library: () => import('./screens/library.js?v=8baf07f6'),
-  search: () => import('./screens/search.js?v=daefc0f5'),
+  search: () => import('./screens/search.js?v=7987798c'),
+  dict: () => import('./screens/dict.js?v=dcf3f927'),
   quiz: () => import('./modes/quiz.js?v=d1cb0289'),
   cards: () => import('./modes/cards.js?v=38fe724c'),
   spell: () => import('./modes/spell.js?v=db4b1607'),

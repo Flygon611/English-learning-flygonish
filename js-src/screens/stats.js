@@ -1,6 +1,6 @@
 // 统计页：掌握度分布、逐字母进度、错词本、历史成绩、数据管理。
 
-import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js?v=4e5abe9c';
+import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js?v=1b053a4f';
 import { btn, panel, statBox, progressBar, stars, empty, sectionTitle } from '../ui/kit.js?v=2f24ea8c';
 import { getWords, letterBreakdown, groupOf, groupsFor, downloadText, findBook } from '../vocab.js?v=4c022754';
 import { statsOf, wordKey, MAX_STAR, isNew } from '../srs.js?v=e54c36c9';

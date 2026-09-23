@@ -8,7 +8,7 @@ export const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 /* 路径：本地开发走项目内的 assets/；部署产物通过 window.WORDHUT_CONFIG 覆盖
    （见 js/util.js 顶部的说明）。 */
-import { CFG } from './util.js?v=4e5abe9c';
+import { CFG } from './util.js?v=1b053a4f';
 
 const DEFAULT_VOCAB_BASE = '../assets/vocab/';
 const GZ_BASE = () => CFG.vocab || DEFAULT_VOCAB_BASE;

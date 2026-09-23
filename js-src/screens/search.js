@@ -1,9 +1,10 @@
 // 查单词页：跨全部词库搜索，可看掌握度、可朗读、可直接开练。
 
-import { h, icon, say } from '../util.js?v=4e5abe9c';
+import { h, icon, say } from '../util.js?v=1b053a4f';
 import { btn, panel, stars, empty, segmented } from '../ui/kit.js?v=2f24ea8c';
 import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js?v=de5a369e';
 import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js?v=c98f7362';
+import { searchAffix } from '../dict.js?v=df0f2e7b';
 
 const LIMIT = 200;
 
@@ -16,6 +17,8 @@ export function render(app) {
     scope: 'all',
     onlyStudied: false,
     results: [],
+    affixes: [],
+    mergedCount: 0,
     indexDone: isReady(),
   };
 
@@ -68,7 +71,7 @@ export function render(app) {
   wrap.append(resultBox);
 
   /* ---------------- 搜索 ---------------- */
-  function runSearch() {
+  async function runSearch() {
     if (!ui.indexDone) {
       resultBox.replaceChildren(empty('正在读取全部词库，稍等一下…', 'hourglass'));
       return;
@@ -77,7 +80,7 @@ export function render(app) {
     if (!q) {
       ui.results = [];
       summaryRow.replaceChildren();
-      resultBox.replaceChildren(empty('输入关键词开始搜索。支持英文单词、假名读音、中文释义。', 'info'));
+      resultBox.replaceChildren(empty('输入关键词开始搜索。支持英文单词、假名读音、中文释义；搜词缀（un-、-tion）可直接查它的意思。', 'info'));
       return;
     }
     const t0 = performance.now();
@@ -90,15 +93,21 @@ export function render(app) {
     });
     const ms = Math.round(performance.now() - t0);
 
+    /* 词缀：搜「un-」「-tion」这类写法时，词库里当然查不到「单词」，
+       但用户要的是词缀本身的释义。所以并行查一次词缀表，命中了就置顶显示。 */
+    // 词缀表取不到不该连累整页搜索，失败就当没有词缀
+    ui.affixes = await searchAffix(q).catch(() => []);
+
     // 小结
-    if (!ui.results.length) {
+    if (!ui.results.length && !ui.affixes.length) {
       summaryRow.replaceChildren(h('div', { class: 'muted', text: `没有找到「${q}」` }));
     } else {
       const books = summarize(ui.results);
       summaryRow.replaceChildren(
         h('div', { class: 'search-stat' }, [
-          h('b', { text: String(ui.results.length) }),
-          h('span', { text: ' 条结果' }),
+          h('b', { text: String(ui.results.length ? (ui.mergedCount || ui.results.length) : ui.affixes.length) }),
+          h('span', { text: ui.results.length ? ' 条结果' : ' 个词缀' }),
+          ui.affixes.length && ui.results.length ? h('span', { class: 'muted', text: ` +${ui.affixes.length} 个词缀` }) : null,
           h('span', { class: 'muted', text: ` · ${ms}ms` }),
         ]),
         h('div', { class: 'search-books' }, books.slice(0, 6).map((b) =>
@@ -109,20 +118,83 @@ export function render(app) {
   }
 
   /* ---------------- 结果列表 ---------------- */
+  /** 词缀卡片：搜 un- / -tion 时显示释义与例词。例词可点进词条详情。 */
+  function renderAffix() {
+    const box = h('div', { class: 'affix-box search-affix' });
+    for (const x of ui.affixes) {
+      box.append(h('div', { class: 'affix-item' }, [
+        h('div', { class: 'af-head' }, [
+          h('b', { class: 'af-key', text: x.a }),
+          h('span', { class: 'dict-tag', text: x.type }),
+        ]),
+        h('div', { class: 'af-zh', text: x.zh }),
+        x.note ? h('div', { class: 'af-note muted', text: x.note }) : null,
+        x.ex && x.ex.length
+          ? h('div', { class: 'af-ex' }, [
+              h('span', { class: 'muted', text: '例：' }),
+              ...x.ex.flatMap((w, i) => [
+                i ? h('span', { class: 'muted', text: '、' }) : null,
+                h('button', {
+                  class: 'af-link', type: 'button', text: w,
+                  onclick: () => { app.play('click'); app.go('dict', { word: w, q: ui.q }); },
+                }),
+              ]),
+            ])
+          : null,
+      ]));
+    }
+    resultBox.append(box);
+  }
+
   function renderResults() {
-    if (!ui.results.length) { resultBox.replaceChildren(); return; }
-    const list = h('div', { class: 'search-list' });
+    if (!ui.results.length) { resultBox.replaceChildren(); if (ui.affixes && ui.affixes.length) renderAffix(); return; }
+    /* 同一个词可能同时出现在四六级/专四专八里。查词典时应该是一条词条，
+       底下标明「属于：四级、六级、专四」，而不是三条重复记录 —— 这里按
+       小写词形合并，词库名收集成一个数组。 */
+    const merged = new Map();
     for (const r of ui.results) {
+      const key = `${r.entry.lang}|${String(r.entry.w.w).toLowerCase()}`;
+      const hit = merged.get(key);
+      if (!hit) {
+        merged.set(key, {
+          entry: r.entry,
+          mastery: r.mastery,
+          books: [r.entry.bookName],
+          levels: [],
+        });
+      } else {
+        if (!hit.books.includes(r.entry.bookName)) hit.books.push(r.entry.bookName);
+        // 掌握度取两处里较高的那个（同一词在不同词库的进度是分开记的）
+        const a = (hit.mastery && hit.mastery.s) || 0;
+        const b = (r.mastery && r.mastery.s) || 0;
+        if (b > a) hit.mastery = r.mastery;
+      }
+    }
+    const rows = [...merged.values()];
+    ui.mergedCount = rows.length;
+
+    const list = h('div', { class: 'search-list' });
+    for (const r of rows) {
       const w = r.entry.w;
       const pr = r.mastery;
-      const row = h('div', { class: 'search-row' }, [
+      const row = h('div', {
+        class: 'search-row clickable',
+        title: '点开查看词条详情',
+        onclick: (e) => {
+          // 点到里面的按钮时不触发跳转
+          if (e.target.closest('button')) return;
+          app.play('click');
+          app.go('dict', { word: w.w, bookId: r.entry.book, lang: r.entry.lang, q: ui.query });
+        },
+      }, [
         h('div', { class: 'sr-main' }, [
           h('div', { class: 'sr-head' }, [
             h('b', { class: 'sr-w', text: w.w, ...langAttr(r.entry.lang) }),
             w.p ? h('span', { class: 'sr-p', text: readingText({ lang: r.entry.lang }, w.p), ...langAttr(r.entry.lang) }) : null,
-            h('span', { class: 'sr-book', text: r.entry.bookName }),
+            ...r.books.map((b) => h('span', { class: 'sr-book', text: b })),
+            h('span', { class: 'sr-more', text: '详情' }),
           ]),
-          h('div', { class: 'sr-t', text: w.t }),
+          h('div', { class: 'sr-t', text: w.t, ...langAttr('zh') }),
           (app.st.showExample && w.x)
             ? h('div', { class: 'sr-ex' }, [
                 h('span', { class: 'sr-x', text: w.x, ...langAttr(r.entry.lang) }),

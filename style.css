@@ -1528,6 +1528,87 @@ b, strong { font-weight: 700; }
 .tk.empty { width: auto; padding: 0 12px; font-family: var(--font); font-size: 12.5px; color: var(--text-3); background: transparent; border: 0; box-shadow: none; animation: none; }
 
 /* 设置页「关于」里的许可证链接（IPA 字体许可要求服务器使用者能看到许可证） */
+/* ============================ 词条详情页 ============================ */
+.dict-head { border-bottom: 1px solid var(--glass-line); padding-bottom: 12px; margin-bottom: 14px; }
+.dh-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dh-w { margin: 0; font-size: 32px; font-weight: 800; color: #06304a; line-height: 1.15; word-break: break-word; }
+
+.d-meta { display: flex; flex-direction: column; gap: 7px; }
+.dm-row { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap; }
+.dm-k { flex: 0 0 62px; font-size: 12.5px; color: var(--text-3); }
+.dm-v { font-size: 14px; color: var(--text); display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
+.dm-v.mono { font-family: var(--font-en); }
+
+.dict-tag {
+  display: inline-block; padding: 2px 9px; border-radius: var(--r-pill);
+  background: linear-gradient(180deg, #ffffff, #e2f2fd);
+  border: 1px solid #9ed2ec; color: #0c5b83;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+
+.sense-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
+.sense { color: var(--text); }
+.se-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.se-pos {
+  font-size: 11.5px; font-weight: 700; color: #0c5b83;
+  background: rgba(22, 168, 214, .13); border-radius: 6px; padding: 1px 7px;
+}
+.se-dom { font-size: 11.5px; color: var(--text-3); }
+.se-dom::before { content: '['; } .se-dom::after { content: ']'; }
+.se-zh { font-size: 15.5px; font-weight: 600; }
+.se-en { margin-top: 3px; font-size: 13px; color: var(--text-2); font-family: var(--font-en); }
+.se-ex {
+  margin-top: 6px; padding-left: 10px; border-left: 2px solid rgba(22, 168, 214, .35);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.se-x { font-size: 13.5px; color: #1d5673; }
+.se-xm { font-size: 13px; color: var(--text-3); }
+
+.syn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.syn-chip {
+  display: inline-block; padding: 5px 13px; border-radius: var(--r-pill);
+  background: linear-gradient(180deg, #ffffff, #e6f6ff);
+  border: 1px solid #9ed2ec; color: #0c5b83;
+  font-size: 14px; font-weight: 600; text-decoration: none;
+  box-shadow: var(--sh-sm);
+  transition: transform var(--d-fast) var(--e-out-back);
+}
+.syn-chip:hover { transform: translateY(-2px); }
+
+.etym { font-size: 14px; line-height: 1.75; color: var(--text-2); }
+.dict-src { margin-top: 16px; font-size: 11.5px; }
+.dict-actions { display: flex; gap: 9px; margin-top: 14px; flex-wrap: wrap; }
+.small { font-size: 12.5px; }
+.center { text-align: center; }
+
+/* 词缀卡片（详情页与搜索页共用） */
+.affix-box { display: flex; flex-direction: column; gap: 10px; }
+.search-affix { margin-bottom: 12px; }
+.affix-item {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, .62));
+  border: 1px solid var(--glass-edge); border-radius: var(--r);
+  padding: 12px 14px; box-shadow: var(--sh-sm);
+}
+.af-head { display: flex; align-items: center; gap: 9px; }
+.af-key { font-size: 19px; font-weight: 800; color: #06304a; font-family: var(--font-en); }
+.af-zh { margin-top: 5px; font-size: 15px; font-weight: 600; color: var(--text); }
+.af-note { margin-top: 3px; font-size: 12.5px; }
+.af-ex { margin-top: 6px; font-size: 13px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px; }
+.af-link {
+  background: none; border: 0; padding: 0 2px; cursor: pointer;
+  color: #0f5f86; font: inherit; text-decoration: underline; text-underline-offset: 2px;
+}
+.af-link:hover { color: #0a4560; }
+
+/* 搜索结果：整行可点开详情 */
+.search-row.clickable { cursor: pointer; }
+.search-row.clickable:hover { border-color: #fff; transform: translateY(-2px); box-shadow: 0 12px 26px rgba(11, 43, 62, .18); }
+.sr-more {
+  font-size: 11.5px; color: #0c5b83; font-weight: 700;
+  border: 1px solid #9ed2ec; border-radius: var(--r-pill); padding: 1px 8px;
+  background: rgba(255, 255, 255, .7);
+}
+
 .lic-link {
   color: #0f5f86;
   text-decoration: underline;

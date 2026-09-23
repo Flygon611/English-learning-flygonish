@@ -1,7 +1,7 @@
 // 四选一闯关：5 关连闯，答错扣血，连击加成。
 // 题型：看英文选中文 / 看中文选英文 / 听音选词。
 
-import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js?v=4e5abe9c';
+import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js?v=1b053a4f';
 import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js?v=2f24ea8c';
 import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=c98f7362';
 import { pickDistractors, LETTERS } from '../vocab.js?v=4c022754';

@@ -24,6 +24,7 @@ const DEFAULT_BASE = {
   sfx: '../assets/audio/sfx/',
   sfxMap: '../assets/audio/sfx.json',
   vocab: '../assets/vocab/',
+  dict: '../assets/dict/',
 };
 
 /* ---------------- DOM ---------------- */

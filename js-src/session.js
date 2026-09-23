@@ -2,7 +2,7 @@
 // 三种模式（四选一 / 翻卡 / 拼写）共用这里加载词表、维护掌握度、收集成绩。
 
 import { getWords, resolveWords, findBook, groupOf } from './vocab.js?v=4c022754';
-import { say } from './util.js?v=4e5abe9c';
+import { say } from './util.js?v=1b053a4f';
 import {
   orderForExam, newProgress, wordKey, MAX_STAR, isDue, isNew,
   recordCorrect, recordWrong, recordRating, statsOf, dueCount,

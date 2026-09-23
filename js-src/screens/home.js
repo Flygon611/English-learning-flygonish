@@ -1,6 +1,6 @@
 // 首页：选模式开玩 + 今日概览。
 
-import { h, icon, say } from '../util.js?v=4e5abe9c';
+import { h, icon, say } from '../util.js?v=1b053a4f';
 import { btn, panel, statBox, progressBar, empty } from '../ui/kit.js?v=2f24ea8c';
 import { bookOverview } from '../session.js?v=c98f7362';
 import { audio } from '../audio.js?v=6550a8e0';

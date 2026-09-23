@@ -1,7 +1,7 @@
 // 拼写填空：看中文释义拼出英文单词。
 // 两种作答方式：键盘输入（默认）/ 从打乱的字母里点选。
 
-import { h, icon, say, shorten } from '../util.js?v=4e5abe9c';
+import { h, icon, say, shorten } from '../util.js?v=1b053a4f';
 import { btn, panel, progressBar, floatText, shake, hearts, stars } from '../ui/kit.js?v=2f24ea8c';
 import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=c98f7362';
 import { normalizeSpell, isSpellCorrect, similarity, diffChars, maskWord, letterBank } from '../spell.js?v=5a536d8a';

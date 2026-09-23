@@ -1,6 +1,6 @@
 // 词库页：选择词库（内置六套 + 自定义）、按首字母拆分选择、导入、导出。
 
-import { h, icon, fmtBytes } from '../util.js?v=4e5abe9c';
+import { h, icon, fmtBytes } from '../util.js?v=1b053a4f';
 import { btn, panel, chip, progressBar, empty, statBox } from '../ui/kit.js?v=2f24ea8c';
 import {
   allBooks, getWords, letterBreakdown, buildSplitExport, downloadText,
