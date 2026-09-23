@@ -24,6 +24,61 @@
       "source": "龍的交響楽 https://d-symphony.com/mt_13.html",
       "credit": "藤村ほわん（龍的交響楽 -Dragonic Symphony-）",
       "license": "龍的交響楽 素材利用規約（署名必须／商用可／允许嵌入游戏／禁止把音频单独再配布）"
+    },
+    {
+      "id": "imp_001_synthwave_4k_0",
+      "name": "001_Synthwave_4k_0",
+      "file": "audio/music/001_synthwave_4k_0.mp3",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.5,
+      "source": "https://opengameart.org/content/cc0-calm-relaxing-music",
+      "credit": "cynicmusic / Peak Music (Airos) / AWeirdDay",
+      "license": "CC0 1.0 通用（公有领域奉献，允许再分发、允许商用、无需署名）"
+    },
+    {
+      "id": "imp_002_synthwave_15k",
+      "name": "002_Synthwave_15k",
+      "file": "audio/music/002_synthwave_15k.mp3",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.5,
+      "source": "https://opengameart.org/content/cc0-calm-relaxing-music",
+      "credit": "cynicmusic / Peak Music (Airos) / AWeirdDay",
+      "license": "CC0 1.0 通用（公有领域奉献，允许再分发、允许商用、无需署名）"
+    },
+    {
+      "id": "imp_003_vaporware_2",
+      "name": "003_Vaporware_2",
+      "file": "audio/music/003_vaporware_2.mp3",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.5,
+      "source": "https://opengameart.org/content/cc0-calm-relaxing-music",
+      "credit": "cynicmusic / Peak Music (Airos) / AWeirdDay",
+      "license": "CC0 1.0 通用（公有领域奉献，允许再分发、允许商用、无需署名）"
+    },
+    {
+      "id": "imp_006_lifewave2k_0",
+      "name": "006_lifeWave2k_0",
+      "file": "audio/music/006_lifewave2k_0.mp3",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.5,
+      "source": "https://opengameart.org/content/cc0-calm-relaxing-music",
+      "credit": "cynicmusic / Peak Music (Airos) / AWeirdDay",
+      "license": "CC0 1.0 通用（公有领域奉献，允许再分发、允许商用、无需署名）"
+    },
+    {
+      "id": "imp_heavenly_loop_0",
+      "name": "Heavenly_Loop_0",
+      "file": "audio/music/heavenly_loop_0.ogg",
+      "scene": "menu",
+      "loop": true,
+      "volume": 0.5,
+      "source": "https://opengameart.org/content/cc0-calm-relaxing-music",
+      "credit": "cynicmusic / Peak Music (Airos) / AWeirdDay",
+      "license": "CC0 1.0 通用（公有领域奉献，允许再分发、允许商用、无需署名）"
     }
   ]
 }

@@ -47,7 +47,14 @@ class MusicPlayer {
       if (res.ok) {
         const j = await res.json();
         const list = Array.isArray(j?.tracks) ? j.tracks : [];
-        this.tracks = list.filter((t) => t && t.file && t.scene);
+        this.tracks = list.filter((t) => {
+          if (!t || !t.file || !t.scene) return false;
+          // `local: false` 的曲目不参与本地播放 —— 例如项目那两首已授权的标题曲，
+          // 它们是给**公开站点**兜底用的（用户的 mp3 因为授权未核实不能上线）。
+          // 本地就该只放用户自己放的曲子，「本地 7 首」与「线上 2 首」各自清晰。
+          if (t.local === false) return false;
+          return true;
+        });
       }
     } catch { this.tracks = []; }
     this.ready = true;

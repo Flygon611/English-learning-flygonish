@@ -145,13 +145,25 @@ export function render(app) {
     ], 'pad'));
 
     /* ---- 关于 ---- */
+    const depTracks = music.tracksFor('menu');   // 本地可见的菜单曲目
     host.append(panel([
       h('div', { class: 'sec-title' }, [h('h2', { text: '关于' })]),
       h('ul', { class: 'tip-list' }, [
         h('li', { text: '单词小栈 · Word Hut —— 纯网页、零构建、可离线的背单词小游戏。' }),
         h('li', { text: '词库：内置四级 / 六级 / 专四 / 专八 / 雅思 / 托福六套，均含音标、释义与例句。' }),
         h('li', { text: '音效与图标：Kenney 素材包（CC0，可商用）。' }),
-        h('li', { text: '宝可梦素材未被本游戏使用；本页仅复用同项目里已整理好的 Kenney 音效与 UI 图标。' }),
+        h('li', { text: '宝可梦素材未被本游戏使用；此处仅复用同项目里已整理好的 Kenney 音效与 UI 图标。' }),
+        h('li', {}, [
+          h('span', { text: '背景音乐（本地共 ' + depTracks.length + ' 首）：' }),
+          h('br'),
+          h('span', { class: 'muted', text: '· CC0 公有领域氛围曲 —— cynicmusic / AWeirdDay，' }),
+          h('span', { class: 'muted', text: '来源 OpenGameArt（CC0 允许自由再分发与商用，无需署名）' }),
+        ]),
+        h('li', {}, [
+          h('span', { class: 'muted', text: '· 「命运的指引」「联合之心·交响进行曲」—— takai（音楽の卵）、藤村ほわん（龍的交響楽），' }),
+          h('span', { class: 'muted', text: '两站条款均允许嵌入游戏，但禁止把音频单独再打包分发' }),
+        ]),
+        h('li', { class: 'muted', text: '完整署名与授权依据见仓库根目录 CREDITS.md。' }),
       ]),
     ], 'pad'));
   }
