@@ -1,7 +1,7 @@
 // UI 组件工具箱：所有界面元素都从这里拼装，保证外观一致。
 
-import { h, icon } from '../util.js';
-import { MAX_STAR } from '../srs.js';
+import { h, icon } from '../util.js?v=4e5abe9c';
+import { MAX_STAR } from '../srs.js?v=e54c36c9';
 
 /* ---------------- 按钮 ---------------- */
 
@@ -175,8 +175,13 @@ export function floatText(host, text, kind = 'good') {
 
 /** 全屏庆祝（升级 / 通关）。 */
 export function celebrate(text, sub = '') {
-  const layer = document.getElementById('toast-layer');
-  if (!layer) return;
+  // ⚠ 必须挂在 <body> 下，**不能**塞进 #toast-layer。
+  // .celebrate 是 position:fixed; inset:0，靠 grid 居中；而 #toast-layer 是个
+  // 被内容撑开（通常 0 宽）、且带 transform 的定位层 —— 有 transform 的祖先会成为
+  // fixed 的包含块，inset:0 于是解析成那个 0×0 的盒子，卡片被压成 138px 宽、
+  // 中心落到视口下方（实测 414×860 时卡片中心 y=884），整个跑到屏幕外并压住标签栏。
+  const host = document.body || document.getElementById('toast-layer');
+  if (!host) return;
   const el = h('div', { class: 'celebrate' }, [
     h('div', { class: 'celebrate-card' }, [
       icon('trophy', 'ico big'),
@@ -199,7 +204,7 @@ export function celebrate(text, sub = '') {
       },
     }));
   }
-  layer.append(el);
+  host.append(el);
   requestAnimationFrame(() => el.classList.add('in'));
   setTimeout(() => {
     el.classList.remove('in');

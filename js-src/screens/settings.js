@@ -1,12 +1,12 @@
 // 设置页：音效、背景音乐、朗读、题量、模式偏好、数据。
 
-import { h, icon, speechSupported, englishVoices, say, fmtBytes } from '../util.js';
-import { btn, panel, toggleRow, stepper, selectRow, segmented, empty } from '../ui/kit.js';
-import { store } from '../core/storage.js';
+import { h, icon, speechSupported, englishVoices, say, fmtBytes } from '../util.js?v=4e5abe9c';
+import { btn, panel, toggleRow, stepper, selectRow, segmented, empty } from '../ui/kit.js?v=2f24ea8c';
+import { store } from '../core/storage.js?v=c9ee2a15';
 // 注意：**不要**从 '../app.js' 导入 —— 那会让「打开设置页」反向加载入口模块，
 // 产生第二个 App 实例并把页面覆盖回首页（见 js/settings-defaults.js 顶部注释）。
-import { DEFAULT_SETTINGS } from '../settings-defaults.js';
-import { music } from '../music.js';
+import { DEFAULT_SETTINGS } from '../settings-defaults.js?v=a055409f';
+import { music } from '../music.js?v=bb44cee2';
 
 export function render(app) {
   const wrap = h('div', { class: 'screen-body' });

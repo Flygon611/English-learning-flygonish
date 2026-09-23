@@ -1,11 +1,11 @@
 // 统计页：掌握度分布、逐字母进度、错词本、历史成绩、数据管理。
 
-import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js';
-import { btn, panel, statBox, progressBar, stars, empty, sectionTitle } from '../ui/kit.js';
-import { getWords, letterBreakdown, letterOf, downloadText, findBook } from '../vocab.js';
-import { statsOf, wordKey, MAX_STAR, isNew } from '../srs.js';
-import { readingText, langAttr } from '../session.js';
-import { store } from '../core/storage.js';
+import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js?v=4e5abe9c';
+import { btn, panel, statBox, progressBar, stars, empty, sectionTitle } from '../ui/kit.js?v=2f24ea8c';
+import { getWords, letterBreakdown, groupOf, groupsFor, downloadText, findBook } from '../vocab.js?v=4c022754';
+import { statsOf, wordKey, MAX_STAR, isNew } from '../srs.js?v=e54c36c9';
+import { readingText, langAttr } from '../session.js?v=26ba47b3';
+import { store } from '../core/storage.js?v=c9ee2a15';
 
 export function render(app) {
   const wrap = h('div', { class: 'screen-body' });
@@ -22,7 +22,7 @@ export function render(app) {
   const letters = app.s.currentLetters || [];
 
   getWords(bookId).then((all) => {
-    const words = letters.length ? all.filter((w) => letters.includes(letterOf(w.w))) : all;
+    const words = letters.length ? all.filter((w) => letters.includes(groupOf(w))) : all;
     renderStats(app, bodyHost, bookId, words);
   }).catch((e) => {
     bodyHost.replaceChildren(empty(String(e.message || e), 'warning'));
@@ -69,7 +69,7 @@ function renderStats(app, host, bookId, words) {
   /* ---- 逐字母进度 ---- */
   const g = new Map();
   for (const w of words) {
-    const L = letterOf(w.w);
+    const L = groupOf(w);
     if (!g.has(L)) g.set(L, []);
     g.get(L).push(w);
   }
@@ -79,7 +79,7 @@ function renderStats(app, host, bookId, words) {
     h('span', { text: '已掌握' }), h('span', { text: '掌握率' }),
     h('span', { text: '错次' }),
   ]));
-  const ordered = [...letterBreakdown(words)];
+  const ordered = [...letterBreakdown(words, groupsFor(bk))];
   for (const { letter } of ordered) {
     const bucket = g.get(letter) || [];
     const bs = statsOf(bucket, app.progress, bookId, th);

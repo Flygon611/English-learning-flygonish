@@ -8,7 +8,7 @@ export const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 /* 路径：本地开发走项目内的 assets/；部署产物通过 window.WORDHUT_CONFIG 覆盖
    （见 js/util.js 顶部的说明）。 */
-import { CFG } from './util.js';
+import { CFG } from './util.js?v=4e5abe9c';
 
 const DEFAULT_VOCAB_BASE = '../assets/vocab/';
 const GZ_BASE = () => CFG.vocab || DEFAULT_VOCAB_BASE;
@@ -55,21 +55,38 @@ export async function loadBuiltinIndex() {
   const res = await fetch(IDX_URL(), { cache: 'no-cache' });
   if (!res.ok) throw new Error('读不到 assets/vocab/index.json');
   const j = await res.json();
-  _index = j.packs.map((p) => ({
-    id: p.id,
-    name: p.name,
-    nameEn: p.nameEn,
-    file: p.file,
-    count: p.count,
-    desc: p.desc,
-    difficulty: p.difficulty,
-    builtin: true,
-    // lang / readingLabel 必须带过来：丢了的话 book.lang 恒为 undefined，
-    // session.lang 就永远是 'en'，日语词库会被英文嗓子朗读、假名还会被套上
-    // 音标的斜杠 —— 这正是「日语读音不对」的根源。
-    lang: p.lang || 'en',
-    readingLabel: p.readingLabel || '音标',
-  }));
+  const groupOrder = new Map((j.groups || []).map((g, i) => [g.id, { ...g, order: g.order ?? i + 1 }]));
+  _index = j.packs.map((p) => {
+    const g = groupOrder.get(p.groupId);
+    return {
+      id: p.id,
+      name: p.name,
+      nameEn: p.nameEn,
+      file: p.file,
+      count: p.count,
+      desc: p.desc,
+      difficulty: p.difficulty,
+      builtin: true,
+      // lang / readingLabel 必须带过来：丢了的话 book.lang 恒为 undefined，
+      // session.lang 就永远是 'en'，日语词库会被英文嗓子朗读、假名还会被套上
+      // 音标的斜杠 —— 这正是「日语读音不对」的根源。
+      lang: p.lang || 'en',
+      readingLabel: p.readingLabel || '音标',
+      // 分类：选择词库页据此分组显示（英语考试 / 日语入门 / 日语 JLPT）。
+      // ⚠ 和下面的「筛选分组」不是一回事：category 是**词库**的分类，
+      // groupLabel 是**某个词库内部**筛选按钮的标题（首字母 / 假名种类）。
+      // 这两者曾经共用 groupLabel 这个键名，后者把前者覆盖掉，
+      // 结果三个分组标题全变成「首字母」。
+      categoryId: p.groupId || 'other',
+      categoryLabel: g ? g.label : '其它',
+      categoryOrder: g ? g.order : 99,
+      // 这个词库支持哪些玩法；缺省三样都支持
+      modes: p.modes || ['quiz', 'cards', 'spell'],
+      // 筛选分组：声明了就按它分组（如五十音的平假名/片假名），否则退回 A–Z 字母
+      groups: p.groups || null,
+      groupLabel: p.groupLabel || '首字母',
+    };
+  });
   return _index;
 }
 
@@ -137,13 +154,34 @@ export function letterOf(word) {
 }
 
 /**
- * 把词条数组按首字母分桶。
+ * 一条词属于哪个筛选分组。
+ *
+ * 默认按首字母（A–Z，其余归 '#'）；词条自带 `g` 字段时以它为准 ——
+ * 五十音词库用的是平假名/片假名，A–Z 对假名毫无意义。
+ *
+ * 注意：会话取词以前用的是 `w.w[0].toUpperCase()`，和这里的 letterOf 不一致 ——
+ * 词库页按 '#' 分组统计，会话却按真实首字符过滤，选中「#」这一组开练会取到 0 个词。
+ * 现在两端都走这一个函数。
+ */
+export function groupOf(word) {
+  if (word && word.g) return word.g;
+  return letterOf(word && word.w);
+}
+
+/** 某个词库的筛选分组清单（[{key,label}]，顺序即显示顺序）。 */
+export function groupsFor(book) {
+  if (book && Array.isArray(book.groups) && book.groups.length) return book.groups;
+  return [...LETTERS, '#'].map((L) => ({ key: L, label: L === '#' ? '其它' : L }));
+}
+
+/**
+ * 把词条数组按筛选分组分桶。
  * @returns {Map<string, object[]>} 例：Map { 'A' => [...], 'B' => [...] }
  */
 export function groupByLetter(words) {
   const map = new Map();
   for (const w of words) {
-    const L = letterOf(w.w);
+    const L = groupOf(w);
     if (!map.has(L)) map.set(L, []);
     map.get(L).push(w);
   }
@@ -151,28 +189,36 @@ export function groupByLetter(words) {
 }
 
 /**
- * 每套词库 × 每个字母的规模表，供词库页展示与选择。
- * @returns {Array<{letter:string, count:number}>} 仅含有词的字母，顺序 A→Z→#
+ * 每套词库 × 每个分组的规模表，供词库页展示与选择。
+ * @param {object[]} words
+ * @param {Array<{key:string,label:string}>} [groups] 词库声明的分组；省略则用 A–Z
+ * @returns {Array<{letter:string, label:string, count:number}>}
  */
-export function letterBreakdown(words) {
+export function letterBreakdown(words, groups = null) {
   const g = groupByLetter(words);
+  const order = groups && groups.length ? groups.map((x) => x.key) : [...LETTERS, '#'];
+  const labelOf = new Map((groups || []).map((x) => [x.key, x.label]));
   const out = [];
-  for (const L of [...LETTERS, '#']) {
-    if (g.has(L)) out.push({ letter: L, count: g.get(L).length });
+  for (const L of order) {
+    if (g.has(L)) out.push({ letter: L, label: labelOf.get(L) || (L === '#' ? '其它' : L), count: g.get(L).length });
+  }
+  // 数据里出现了声明之外的分组也别漏掉
+  for (const [L, arr] of g) {
+    if (!order.includes(L)) out.push({ letter: L, label: labelOf.get(L) || L, count: arr.length });
   }
   return out;
 }
 
 /**
- * 真正取词的入口：把「词库 + 字母筛选」解析成一个数组。
+ * 真正取词的入口：把「词库 + 分组筛选」解析成一个数组。
  * @param {string} bookId
- * @param {string[]} letters 空数组 = 全选（全部字母）
+ * @param {string[]} letters 空数组 = 全选（全部分组）
  */
 export async function resolveWords(bookId, letters = []) {
   const words = await getWords(bookId);
   if (!letters.length) return words;
   const want = new Set(letters);
-  return words.filter((w) => want.has(letterOf(w.w)));
+  return words.filter((w) => want.has(groupOf(w)));
 }
 
 /* ---------------- 干扰项池 ---------------- */
@@ -200,7 +246,7 @@ export function pickDistractors(words, answer, n, r, { sensesOverlap, needZh = f
     if (needZh && w.zhSource === 'none') continue;
     if (sensesOverlap && sensesOverlap(w.t, answer.t)) continue;   // 语义重复不做干扰项
     let score = 0;
-    if (letterOf(w.w) === letterOf(answer.w)) score += 40;
+    if (groupOf(w) === groupOf(answer)) score += 40;
     if (w.lvl && answer.lvl) score += Math.max(0, 12 - Math.abs(w.lvl - answer.lvl) * 3);
     score += Math.max(0, 10 - Math.abs((w.w || '').length - ansLen));
     score += r() * 18;                                            // 打散，避免每次都同样几个
@@ -377,7 +423,7 @@ export function removeUserBook(id) {
  * @returns {{filename:string, json:string, meta:object}}
  */
 export function buildSplitExport(book, words, letters = []) {
-  const filtered = letters.length ? words.filter((w) => letters.includes(letterOf(w.w))) : words;
+  const filtered = letters.length ? words.filter((w) => letters.includes(groupOf(w))) : words;
   const g = groupByLetter(filtered);
   const groups = {};
   const meta = [];

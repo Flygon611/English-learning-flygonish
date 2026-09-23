@@ -1,9 +1,9 @@
 // 查单词页：跨全部词库搜索，可看掌握度、可朗读、可直接开练。
 
-import { h, icon, say } from '../util.js';
-import { btn, panel, stars, empty, segmented } from '../ui/kit.js';
-import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js';
-import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js';
+import { h, icon, say } from '../util.js?v=4e5abe9c';
+import { btn, panel, stars, empty, segmented } from '../ui/kit.js?v=2f24ea8c';
+import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js?v=de5a369e';
+import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js?v=26ba47b3';
 
 const LIMIT = 200;
 

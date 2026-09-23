@@ -8,8 +8,8 @@
 //     （四级在托福前面），因为那更可能是用户想查的常用词。
 //  4) 搜到没背过的词可以直接去练（只练这一个词），避免"搜到了却没法记"。
 
-import { allBooks, getWords, letterOf } from './vocab.js';
-import { wordKey } from './srs.js';
+import { allBooks, getWords, letterOf } from './vocab.js?v=4c022754';
+import { wordKey } from './srs.js?v=e54c36c9';
 
 /** 搜索索引是否已就绪。 */
 let indexReady = false;

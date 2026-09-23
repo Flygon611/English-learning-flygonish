@@ -9,7 +9,7 @@
 //   3) 淡入淡出用音量渐变而不是硬切，避免"啪"的一声。
 //   4) 只用一个 <audio> 实例，切换曲目时复用，避免多个实例叠加播放。
 
-import { CFG } from './util.js';
+import { CFG } from './util.js?v=4e5abe9c';
 
 /** BGM 目录：本游戏自己的 assets/audio/music/（清单里的纯文件名都相对它解析）。
  *  注意是 `./assets/...`（wordgame 自己的），不是 `../assets/...`（项目共用的音效目录）——

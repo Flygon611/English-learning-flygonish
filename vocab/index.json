@@ -4,6 +4,34 @@
   "source": "JDICT: JMdict (EDRDG, CC BY-SA 4.0) + jmdict-cn (CC BY-SA 4.0); levels from OpenJLPT (CC BY-SA 4.0)",
   "packs": [
     {
+      "id": "kana",
+      "name": "五十音（假名）",
+      "nameEn": "Kana",
+      "file": "kana.json.gz",
+      "count": 142,
+      "desc": "日语五十音：平假名 + 片假名，可按假名种类筛选",
+      "difficulty": 0,
+      "bytes": 4711,
+      "lang": "ja",
+      "readingLabel": "罗马字",
+      "groupId": "ja-kana",
+      "modes": [
+        "quiz",
+        "cards"
+      ],
+      "groups": [
+        {
+          "key": "hiragana",
+          "label": "平假名"
+        },
+        {
+          "key": "katakana",
+          "label": "片假名"
+        }
+      ],
+      "groupLabel": "假名种类"
+    },
+    {
       "id": "cet4",
       "name": "四级",
       "nameEn": "CET-4",
@@ -11,7 +39,8 @@
       "count": 4544,
       "desc": "大学英语四级核心词汇",
       "difficulty": 1,
-      "bytes": 389805
+      "bytes": 389805,
+      "groupId": "en"
     },
     {
       "id": "n5",
@@ -23,7 +52,8 @@
       "difficulty": 1,
       "bytes": 62841,
       "lang": "ja",
-      "readingLabel": "假名"
+      "readingLabel": "假名",
+      "groupId": "ja-jlpt"
     },
     {
       "id": "cet6",
@@ -33,7 +63,8 @@
       "count": 3991,
       "desc": "大学英语六级核心词汇",
       "difficulty": 2,
-      "bytes": 357923
+      "bytes": 357923,
+      "groupId": "en"
     },
     {
       "id": "n4",
@@ -45,17 +76,8 @@
       "difficulty": 2,
       "bytes": 63651,
       "lang": "ja",
-      "readingLabel": "假名"
-    },
-    {
-      "id": "tem4",
-      "name": "专四",
-      "nameEn": "TEM-4",
-      "file": "tem4.json.gz",
-      "count": 4340,
-      "desc": "英语专业四级考试词汇",
-      "difficulty": 3,
-      "bytes": 422518
+      "readingLabel": "假名",
+      "groupId": "ja-jlpt"
     },
     {
       "id": "n3",
@@ -67,17 +89,19 @@
       "difficulty": 3,
       "bytes": 183218,
       "lang": "ja",
-      "readingLabel": "假名"
+      "readingLabel": "假名",
+      "groupId": "ja-jlpt"
     },
     {
-      "id": "tem8",
-      "name": "专八",
-      "nameEn": "TEM-8",
-      "file": "tem8.json.gz",
-      "count": 12410,
-      "desc": "英语专业八级考试词汇",
-      "difficulty": 4,
-      "bytes": 1185633
+      "id": "tem4",
+      "name": "专四",
+      "nameEn": "TEM-4",
+      "file": "tem4.json.gz",
+      "count": 4340,
+      "desc": "英语专业四级考试词汇",
+      "difficulty": 3,
+      "bytes": 422518,
+      "groupId": "en"
     },
     {
       "id": "n2",
@@ -89,7 +113,19 @@
       "difficulty": 4,
       "bytes": 185389,
       "lang": "ja",
-      "readingLabel": "假名"
+      "readingLabel": "假名",
+      "groupId": "ja-jlpt"
+    },
+    {
+      "id": "tem8",
+      "name": "专八",
+      "nameEn": "TEM-8",
+      "file": "tem8.json.gz",
+      "count": 12410,
+      "desc": "英语专业八级考试词汇",
+      "difficulty": 4,
+      "bytes": 1185633,
+      "groupId": "en"
     },
     {
       "id": "ielts",
@@ -99,7 +135,8 @@
       "count": 5274,
       "desc": "雅思考试学术与生活词汇",
       "difficulty": 5,
-      "bytes": 480160
+      "bytes": 480160,
+      "groupId": "en"
     },
     {
       "id": "n1",
@@ -111,7 +148,8 @@
       "difficulty": 5,
       "bytes": 353173,
       "lang": "ja",
-      "readingLabel": "假名"
+      "readingLabel": "假名",
+      "groupId": "ja-jlpt"
     },
     {
       "id": "toefl",
@@ -121,7 +159,25 @@
       "count": 10366,
       "desc": "托福考试核心词汇",
       "difficulty": 6,
-      "bytes": 940136
+      "bytes": 940136,
+      "groupId": "en"
+    }
+  ],
+  "groups": [
+    {
+      "id": "en",
+      "label": "英语考试",
+      "order": 1
+    },
+    {
+      "id": "ja-kana",
+      "label": "日语入门・五十音",
+      "order": 2
+    },
+    {
+      "id": "ja-jlpt",
+      "label": "日语 JLPT",
+      "order": 3
     }
   ]
 }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#7fc9f5">
 <title>单词小栈 · Word Hut</title>
-<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-09-23T07:45:33Z 生成；请勿直接编辑。
+<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-09-23T08:40:47Z 生成；请勿直接编辑。
      源码在 wordgame/，改完重新运行构建脚本即可。
      本次改写了 8 处静态素材路径、注入了 window.WORDHUT_CONFIG。 -->
 <!-- 内联 favicon：避免浏览器请求 /favicon.ico 产生 404 -->
@@ -47,7 +47,9 @@
     <div class="tb-title" id="topbar-title">单词小栈</div>
     <div class="tb-right">
       <span class="chip" id="chip-coins" title="金币：答题赚取"><img class="ico" src="ui/coin.png" alt=""><b id="coin-num">0</b></span>
-      <button class="tb-btn ico-only" data-go="search" title="查单词"><img class="ico" src="ui/scroll.png" alt=""></button>
+      <button class="tb-btn tb-search" data-go="search" title="查单词：跨全部词库搜索">
+        <img class="ico" src="ui/bookOpen.png" alt=""><span class="tb-label">查单词</span>
+      </button>
       <button class="tb-btn ico-only" data-go="settings" title="设置"><img class="ico" src="ui/gear.png" alt=""></button>
     </div>
   </header>
@@ -68,7 +70,55 @@
 <div id="toast-layer" class="toast-layer"></div>
 <div id="modal-layer" class="modal-layer" hidden></div>
 
+<script>
+/* 模块加载失败的兜底提示。
+   本站是零构建的静态 ES Modules 站点，模块之间按固定路径互相 import。浏览器会给
+   每个模块单独缓存；当部署更新后，**新加载的模块**可能配到**还在缓存里的旧模块**，
+   于是抛出让用户完全摸不着头脑的 `does not provide an export named 'xxx'`。
+   （真实发生过：统计页是点进去才动态加载的，它的模块是新的，session.js 还是旧的。）
+
+   部署时已经给模块 URL 盖上内容哈希来避免这件事（见 tools/build_gh_pages.py 的
+   stamp_modules）。这段提示只作为漏网情况的兜底：把「刷新一下就好」直接告诉用户，
+   而不是丢一句 TypeError 让他以为网站坏了。 */
+(function () {
+  var shown = false;
+  function looksStale(msg) {
+    return /does not provide an export named|Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(String(msg || ''));
+  }
+  function show() {
+    if (shown) return;
+    shown = true;
+    var bar = document.createElement('div');
+    bar.setAttribute('role', 'alert');
+    bar.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99999;' +
+      'max-width:min(92vw,620px);padding:14px 18px;border-radius:14px;line-height:1.55;' +
+      'background:#fff5f5;color:#8f1d2c;border:1px solid rgba(179,42,63,.45);' +
+      'box-shadow:0 10px 30px rgba(11,43,62,.22);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif';
+    var b = document.createElement('b');
+    b.textContent = '页面缓存了旧版本文件';
+    var p = document.createElement('div');
+    p.style.marginTop = '4px';
+    p.textContent = '刚才更新的模块和浏览器缓存里的旧模块对不上。强制刷新一次即可恢复（Windows：Ctrl+Shift+R，Mac：Cmd+Shift+R）。';
+    var btn = document.createElement('button');
+    btn.textContent = '强制刷新';
+    btn.style.cssText = 'margin-top:10px;padding:6px 14px;border-radius:10px;cursor:pointer;' +
+      'border:1px solid rgba(143,29,44,.4);background:#fff;color:#8f1d2c;font:inherit';
+    btn.addEventListener('click', function () { location.reload(); });
+    bar.appendChild(b);
+    bar.appendChild(p);
+    bar.appendChild(btn);
+    (document.body || document.documentElement).appendChild(bar);
+  }
+  window.addEventListener('error', function (e) {
+    if (looksStale(e && e.message)) show();
+  }, true);
+  window.addEventListener('unhandledrejection', function (e) {
+    if (looksStale(e && e.reason && e.reason.message)) show();
+  });
+})();
+</script>
+
 <script>window.WORDHUT_CONFIG = {"vocab": "vocab/", "sfx": "audio/sfx/", "sfxMap": "audio/sfx.json", "ui": "ui/", "script": "js-src/app.js", "musicMap": "music.json", "music": "music/", "musicProject": "../assets/audio/music/", "sfxLocal": "audio/sfx-local/", "sfxLocalMap": "audio/sfx.local.json"};</script>
-<script type="module" src="./js-src/app.js"></script>
+<script type="module" src="./js-src/app.js?v=2dc5cee9"></script>
 </body>
 </html>

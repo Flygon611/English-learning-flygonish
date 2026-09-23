@@ -1,8 +1,8 @@
 // 导入词库：粘贴文本 / 选择文件 → 解析预览 → 保存为自定义词库。
 
-import { h, icon, fmtBytes } from '../util.js';
-import { btn, panel, empty, statBox } from '../ui/kit.js';
-import { parseImport, addUserBook, letterBreakdown, allBooks } from '../vocab.js';
+import { h, icon, fmtBytes } from '../util.js?v=4e5abe9c';
+import { btn, panel, empty, statBox } from '../ui/kit.js?v=2f24ea8c';
+import { parseImport, addUserBook, letterBreakdown, allBooks } from '../vocab.js?v=4c022754';
 
 const SAMPLE = `# 1) 制表符 / 逗号 / 竖线 / 冒号分隔（最常见）
 abandon	v. 抛弃，放弃

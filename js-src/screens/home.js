@@ -1,9 +1,9 @@
 // 首页：选模式开玩 + 今日概览。
 
-import { h, icon, say } from '../util.js';
-import { btn, panel, statBox, progressBar, empty } from '../ui/kit.js';
-import { bookOverview } from '../session.js';
-import { audio } from '../audio.js';
+import { h, icon, say } from '../util.js?v=4e5abe9c';
+import { btn, panel, statBox, progressBar, empty } from '../ui/kit.js?v=2f24ea8c';
+import { bookOverview } from '../session.js?v=26ba47b3';
+import { audio } from '../audio.js?v=6550a8e0';
 
 export function render(app) {
   const wrap = h('div', { class: 'screen-body' });
@@ -71,7 +71,12 @@ export function render(app) {
   ];
 
   const modeGrid = h('div', { class: 'mode-grid' });
-  for (const m of modes) {
+  // 玩法是否可用由词库自己声明（index.json 的 modes）。
+  // 五十音词库就没有「拼写填空」：假名没有拉丁字母可拼，硬上会得到一个空的字母池。
+  // 注意复用上面已经取到的 book —— 这里再 const book 一次会让整个模块报
+  // SyntaxError: Identifier 'book' has already been declared，首页直接白屏。
+  const allowed = (book && book.modes) || ['quiz', 'cards', 'spell'];
+  for (const m of modes.filter((x) => allowed.includes(x.id))) {
     modeGrid.append(h('button', {
       class: `mode-card ${m.cls}`,
       type: 'button',

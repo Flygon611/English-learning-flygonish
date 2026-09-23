@@ -1,12 +1,12 @@
 // 学习会话：把「当前词库 + 字母筛选 + 模式」变成一次可开始的学习。
 // 三种模式（四选一 / 翻卡 / 拼写）共用这里加载词表、维护掌握度、收集成绩。
 
-import { getWords, resolveWords, findBook } from './vocab.js';
-import { say } from './util.js';
+import { getWords, resolveWords, findBook, groupOf } from './vocab.js?v=4c022754';
+import { say } from './util.js?v=4e5abe9c';
 import {
   orderForExam, newProgress, wordKey, MAX_STAR, isDue, isNew,
   recordCorrect, recordWrong, recordRating, statsOf, dueCount,
-} from './srs.js';
+} from './srs.js?v=e54c36c9';
 
 /**
  * 朗读用什么语音。
@@ -81,13 +81,17 @@ export function speakWord(app, session, word, opts = {}) {
 export async function launch(app, mode) {
   const st = app.st;
   const book = app.book();
+  // 词库可以声明自己支持哪些玩法（五十音没有「拼写填空」）。
+  // 万一从旧存档或别处传了不支持的玩法，退回四选一而不是崩掉。
+  const allowed = (book && book.modes) || ['quiz', 'cards', 'spell'];
+  const useMode = allowed.includes(mode) ? mode : 'quiz';
   const letters = app.s.currentLetters || [];
   const sizeMap = { quiz: st.quizSize, spell: st.spellSize, cards: st.cardSize };
-  const size = sizeMap[mode] || 10;
+  const size = sizeMap[useMode] || 10;
 
   const all = await getWords(app.s.currentBook);
   const pool = letters.length
-    ? all.filter((w) => letters.includes((w.w[0] || '').toUpperCase()))
+    ? all.filter((w) => letters.includes(groupOf(w)))
     : all;
 
   if (!pool.length) throw new Error('当前筛选下没有词条，请换个词库或字母');
@@ -99,7 +103,7 @@ export async function launch(app, mode) {
   const queue = orderForExam(pool, app.progress, app.s.currentBook, Math.min(size, pool.length), r);
 
   return {
-    mode,
+    mode: useMode,
     bookId: app.s.currentBook,
     bookName: book.name,
     bookDesc: app.selectionLabel(),
@@ -293,7 +297,7 @@ function makeRngLike(seed) {
 /** 快捷读取某词库的规模与掌握概览。 */
 export async function bookOverview(app, bookId, letters = null) {  const all = await getWords(bookId);
   const pool = letters && letters.length
-    ? all.filter((w) => letters.includes((w.w[0] || '').toUpperCase()))
+    ? all.filter((w) => letters.includes(groupOf(w)))
     : all;
   return {
     total: pool.length,

@@ -1,10 +1,10 @@
 // 翻卡记忆：翻卡看释义 + 自评「不认识 / 模糊 / 认识 / 熟练」，按自评排复习间隔。
 
-import { h, icon, say, sleep, speechSupported } from '../util.js';
-import { btn, panel, stars, progressBar, floatText, empty, sectionTitle } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js';
-import { orderForExam } from '../srs.js';
-import { renderResult } from '../screens/result.js';
+import { h, icon, say, sleep, speechSupported } from '../util.js?v=4e5abe9c';
+import { btn, panel, stars, progressBar, floatText, empty, sectionTitle } from '../ui/kit.js?v=2f24ea8c';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=26ba47b3';
+import { orderForExam } from '../srs.js?v=e54c36c9';
+import { renderResult } from '../screens/result.js?v=9bcc5429';
 
 /** 自评档位：rating 越大掌握度越高。 */
 const RATINGS = [

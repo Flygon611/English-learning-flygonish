@@ -1,8 +1,8 @@
 // 结算界面：三种模式共用的成绩页。
 
-import { h, icon, fmtTime, fmtPct } from '../util.js';
-import { btn, panel, statBox, progressBar, stars, empty } from '../ui/kit.js';
-import { wordKey, MAX_STAR } from '../srs.js';
+import { h, icon, fmtTime, fmtPct } from '../util.js?v=4e5abe9c';
+import { btn, panel, statBox, progressBar, stars, empty } from '../ui/kit.js?v=2f24ea8c';
+import { wordKey, MAX_STAR } from '../srs.js?v=e54c36c9';
 
 /**
  * @param {object} app

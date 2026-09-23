@@ -1,7 +1,7 @@
 // 音效管理：复用项目已有 Kenney Interface Sounds 整理产物（assets/audio/sfx + sfx.json）。
 // 纯 ES2022，无依赖。
 
-import { CFG } from './util.js';
+import { CFG } from './util.js?v=4e5abe9c';
 
 // 逻辑名 -> 实际文件名由 sfx.json 提供（此处只保留兜底）
 const FALLBACK = {

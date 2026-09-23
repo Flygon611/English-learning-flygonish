@@ -1,14 +1,14 @@
 // 应用状态与外壳：状态存取、导航、弹窗、提示、音效绑定。
 
-import { store } from './core/storage.js';
-import { allBooks, setUserBooks, userBooks } from './vocab.js';
-import { importProgress, exportProgress, isCorruptKey } from './srs.js';
-import { h, $, dayKey, daysBetween } from './util.js';
-import { audio } from './audio.js';
-import { music } from './music.js';
+import { store } from './core/storage.js?v=c9ee2a15';
+import { allBooks, setUserBooks, userBooks } from './vocab.js?v=4c022754';
+import { importProgress, exportProgress, isCorruptKey } from './srs.js?v=e54c36c9';
+import { h, $, dayKey, daysBetween } from './util.js?v=4e5abe9c';
+import { audio } from './audio.js?v=6550a8e0';
+import { music } from './music.js?v=bb44cee2';
 // 默认设置/场景常量放在叶子模块里，避免各 screen 反向 import app.js 造成循环依赖
 // （那会产生第二个 App 实例，把渲染好的页面覆盖回首页 —— 见 settings-defaults.js 注释）
-import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js';
+import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=a055409f';
 
 // 重新导出，保持既有调用方（如 screens/settings.js 的 `from '../app.js'`）仍可用。
 // 但新代码应直接从 settings-defaults.js 取，别从这里取。
@@ -193,17 +193,17 @@ class App {
    */
   get searchApi() {
     return {
-      build: (onProgress) => import('./search.js').then((m) => m.buildIndex(onProgress)),
-      ready: () => import('./search.js').then((m) => m.isReady()),
-      run: (q, opt) => import('./search.js').then((m) => m.search(q, opt)),
+      build: (onProgress) => import('./search.js?v=de5a369e').then((m) => m.buildIndex(onProgress)),
+      ready: () => import('./search.js?v=de5a369e').then((m) => m.isReady()),
+      run: (q, opt) => import('./search.js?v=de5a369e').then((m) => m.search(q, opt)),
     };
   }
 
   /** 词库 API（只读转发）。同样是为了让测试脚本不必拼模块路径。 */
   get vocabApi() {
     return {
-      books: () => import('./vocab.js').then((m) => (m.loadBuiltinIndex(), m.allBooks())),
-      words: (id) => import('./vocab.js').then((m) => m.getWords(id)),
+      books: () => import('./vocab.js?v=4c022754').then((m) => (m.loadBuiltinIndex(), m.allBooks())),
+      words: (id) => import('./vocab.js?v=4c022754').then((m) => m.getWords(id)),
     };
   }
 
@@ -349,15 +349,15 @@ class App {
 /* ---------------- 屏幕懒加载表 ---------------- */
 
 const SCREENS = {
-  home: () => import('./screens/home.js'),
-  library: () => import('./screens/library.js'),
-  search: () => import('./screens/search.js'),
-  quiz: () => import('./modes/quiz.js'),
-  cards: () => import('./modes/cards.js'),
-  spell: () => import('./modes/spell.js'),
-  stats: () => import('./screens/stats.js'),
-  settings: () => import('./screens/settings.js'),
-  importer: () => import('./screens/importer.js'),
+  home: () => import('./screens/home.js?v=f7ae5616'),
+  library: () => import('./screens/library.js?v=8baf07f6'),
+  search: () => import('./screens/search.js?v=daefc0f5'),
+  quiz: () => import('./modes/quiz.js?v=f396e48b'),
+  cards: () => import('./modes/cards.js?v=38fe724c'),
+  spell: () => import('./modes/spell.js?v=db4b1607'),
+  stats: () => import('./screens/stats.js?v=9abe6b8d'),
+  settings: () => import('./screens/settings.js?v=c335ebc7'),
+  importer: () => import('./screens/importer.js?v=9476ce79'),
 };
 
 export const app = new App();
@@ -387,7 +387,7 @@ async function boot() {
     await music.init();
     // 读取词库目录（失败也不阻断，只是没有内置词库可选）
     try {
-      const { loadBuiltinIndex } = await import('./vocab.js');
+      const { loadBuiltinIndex } = await import('./vocab.js?v=4c022754');
       await loadBuiltinIndex();
     } catch (e) {
       console.error(e);

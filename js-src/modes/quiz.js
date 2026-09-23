@@ -1,12 +1,12 @@
 // 四选一闯关：5 关连闯，答错扣血，连击加成。
 // 题型：看英文选中文 / 看中文选英文 / 听音选词。
 
-import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js';
-import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js';
-import { pickDistractors, LETTERS } from '../vocab.js';
-import { renderResult } from '../screens/result.js';
-import { audio } from '../audio.js';
+import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js?v=4e5abe9c';
+import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js?v=2f24ea8c';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=26ba47b3';
+import { pickDistractors, LETTERS } from '../vocab.js?v=4c022754';
+import { renderResult } from '../screens/result.js?v=9bcc5429';
+import { audio } from '../audio.js?v=6550a8e0';
 
 /** 5 个关卡：越往后抽词范围越难（生词→未掌握→全部），容错越低，奖励越高。 */
 export const LEVELS = [
@@ -199,12 +199,14 @@ export function render(app) {
     // 题面用词随词库语言变化 —— 日语词库里写"英文单词"是错的（实测出现过
     // 「选出对应的英文单词」配 塩/店/五/なぜ 这种自相矛盾的题面）
     const ja = session.lang === 'ja';
+    // 五十音词库的「释义」就是罗马字，题面写成「中文释义」会自相矛盾
+    const romaji = ja && session.readingLabel === '罗马字';
     if (type === QUIZ_TYPE.L2T) {
       q.prompt = '';
-      q.promptLabel = '听发音，选出对应的中文释义';
+      q.promptLabel = romaji ? '听发音，选出对应的读音' : '听发音，选出对应的中文释义';
     } else if (type === QUIZ_TYPE.W2T) {
       q.prompt = w.w;
-      q.promptLabel = '选出正确的中文释义';
+      q.promptLabel = romaji ? '选出正确的读音' : '选出正确的中文释义';
     } else {
       q.prompt = shorten(w.t, 60);
       q.promptLabel = ja ? '选出对应的日语单词' : '选出对应的英文单词';
