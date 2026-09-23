@@ -7,6 +7,25 @@ import {
   recordCorrect, recordWrong, recordRating, statsOf, dueCount,
 } from './srs.js';
 
+/**
+ * 朗读用什么语音。
+ * 日语词库必须用 ja-JP —— 否则浏览器会拿英文嗓子去念假名（实测过，听起来完全不对）。
+ * 英文词库沿用设置里的口音（美/英/澳）。
+ */
+export function voiceLang(session, fallbackAccent = 'en-US') {
+  if (session && session.lang === 'ja') return 'ja-JP';
+  return fallbackAccent;
+}
+
+/**
+ * 读音怎么显示。
+ * 英文是 IPA，习惯用 /…/ 包起来；日语是假名，套斜杠反而奇怪，直接显示。
+ */
+export function readingText(session, p) {
+  if (!p) return '';
+  return session && session.lang === 'ja' ? p : `/${p}/`;
+}
+
 /** 会话对象结构（供各模式读写）：
  * {
  *   mode, bookId, bookName, letters, words, queue, index,
@@ -44,6 +63,9 @@ export async function launch(app, mode) {
     bookId: app.s.currentBook,
     bookName: book.name,
     bookDesc: app.selectionLabel(),
+    // 词库语言：日语词库要朗读用 ja-JP，否则英文嗓子会去念假名（实测踩过）
+    lang: book.lang === 'ja' ? 'ja' : 'en',
+    readingLabel: book.readingLabel || '音标',
     letters: letters.slice(),
     pool,                       // 干扰项候选池（当前字母筛选范围）
     words: queue,
@@ -175,9 +197,61 @@ export function finishSession(app, session, reason = 'done') {
   return summary;
 }
 
-/** 快捷读取某词库的规模与掌握概览。 */
-export async function bookOverview(app, bookId, letters = null) {
+/**
+ * 构造一个「只练这几个词」的临时会话（查单词页的「练这个词」用）。
+ * 干扰项仍然从该词所在词库的全量词里取，保证选项有迷惑性。
+ */
+export async function drillSession(app, bookId, words) {
+  const book = findBook(bookId);
+  if (!book) throw new Error(`没有这个词库：${bookId}`);
   const all = await getWords(bookId);
+  const seed = (Date.now() ^ Math.floor(Math.random() * 0xffff)) >>> 0;
+  const r = makeRngLike(seed);
+  const picked = all.filter((w) => words.includes(w.w));
+  if (!picked.length) throw new Error('这些词不在该词库里');
+  return {
+    mode: 'quiz',
+    bookId,
+    bookName: book.name,
+    bookDesc: `${book.name} · 查词`,
+    lang: book.lang === 'ja' ? 'ja' : 'en',
+    readingLabel: book.readingLabel || '音标',
+    letters: [],
+    pool: all,                 // 干扰项池 = 整本词库
+    words: picked,
+    size: picked.length,
+    index: 0,
+    score: 0,
+    coins: 0,
+    correct: 0,
+    wrong: 0,
+    combo: 0,
+    bestCombo: 0,
+    lives: 99,                 // 查词练习不该被"扣血"打断
+    maxLives: 99,
+    answers: [],
+    rngSeed: seed,
+    r,
+    startedAt: Date.now(),
+    finished: false,
+    autoSpeak: app.st.autoSpeak,
+    fromSearch: true,
+  };
+}
+
+/** 与 launch() 里同一个 PRNG（抽出来避免重复实现）。 */
+function makeRngLike(seed) {
+  let a = seed >>> 0;
+  return function next() {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** 快捷读取某词库的规模与掌握概览。 */
+export async function bookOverview(app, bookId, letters = null) {  const all = await getWords(bookId);
   const pool = letters && letters.length
     ? all.filter((w) => letters.includes((w.w[0] || '').toUpperCase()))
     : all;

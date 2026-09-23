@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten } from '../util.js';
 import { btn, panel, progressBar, floatText, shake, hearts, stars } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf } from '../session.js';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText } from '../session.js';
 import { normalizeSpell, isSpellCorrect, similarity, diffChars, maskWord, letterBank } from '../spell.js';
 import { renderResult } from '../screens/result.js';
 
@@ -38,7 +38,7 @@ export function render(app) {
 
   async function speak(w) {
     app.play('click');
-    if (!say(w, { lang: app.st.accent })) app.toast('系统语音不可用', 'warn', 1400);
+    if (!say(w, { lang: voiceLang(session) })) app.toast('系统语音不可用', 'warn', 1400);
   }
 
   function hint() {
@@ -166,7 +166,7 @@ export function render(app) {
       h('div', { class: 'sc-label', text: '请拼出对应的英文单词' }),
       h('div', { class: 'sc-meaning', text: w.t }),
       w.p && app.st.showPhonetic && S.status !== 'ask'
-        ? h('div', { class: 'sc-phon', text: `/${w.p}/` })
+        ? h('div', { class: 'sc-phon', text: readingText(session, w.p) })
         : null,
       h('div', { class: 'sc-meta' }, [
         h('span', {}, [icon(w.w.includes(' ') ? 'scroll' : 'note', 'ico xs'), h('span', { text: `${w.w.includes(' ') ? '词组' : '单词'} · ${w.w.replace(/[a-z]/gi, '·').length} 个字符` })]),
@@ -330,7 +330,7 @@ export function render(app) {
 
     // 拼写题可选用朗读
     if (app.st.spellSound && S.status === 'ask' && S.index >= 0) {
-      say(w.w, { lang: app.st.accent, rate: 0.8 });
+      say(w.w, { lang: voiceLang(session), rate: 0.8 });
     }
   }
 

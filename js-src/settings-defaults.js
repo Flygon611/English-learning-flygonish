@@ -36,6 +36,7 @@ export const STUDY_SCREENS = new Set(['quiz', 'cards', 'spell']);
 export const SCREEN_TITLES = {
   home: '单词小栈',
   library: '词库',
+  search: '查单词',
   quiz: '四选一闯关',
   cards: '翻卡记忆',
   spell: '拼写填空',

@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js';
 import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf } from '../session.js';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText } from '../session.js';
 import { pickDistractors, LETTERS } from '../vocab.js';
 import { renderResult } from '../screens/result.js';
 import { audio } from '../audio.js';
@@ -39,6 +39,7 @@ export function render(app) {
   function start() {
     S = {
       phase: 'idle',       // idle | levelIntro | ask | feedback | levelUp | over
+      drill: !!session.fromSearch,   // 查词练习：单/少词，不按关卡推进
       r: session.r,        // 会话的种子化随机源（出题顺序可复现）
       levelIdx: 0,
       lives: session.maxLives,
@@ -65,6 +66,25 @@ export function render(app) {
   function goLevelIntro() {
     S.phase = 'levelIntro';
     const L = LEVELS[S.levelIdx];
+    // 查词练习：只有一两个词，别显示"第 1/5 关""10 题"这类正常关卡信息，会误导
+    if (S.drill) {
+      root.replaceChildren(h('div', { class: 'quiz-intro' }, [
+        h('div', { class: 'qi-badge', text: '查词练习' }),
+        h('h1', { class: 'qi-name', text: '练这个词' }),
+        h('div', { class: 'qi-facts' }, [
+          fact('book', '词库', session.bookName),
+          fact('target', '题数', `${session.size} 题`),
+          fact('heart', '生命', '不限（答错不扣命）'),
+        ]),
+        h('p', { class: 'qi-tip', text: '这是从「查单词」进来的专项练习，答错不会中断，练完就回到统计。' }),
+        h('div', { class: 'qi-actions' }, [
+          btn({ label: '开始', iconName: 'arrowRight', kind: 'primary', onclick: () => beginLevel() }),
+          btn({ label: '返回查词', iconName: 'back', kind: 'ghost', onclick: () => app.go('search') }),
+        ]),
+      ]));
+      app.setKeyHint('Enter / 空格 开始本关 · Esc 退出');
+      return;
+    }
     const round = LEVELS.length;
     root.replaceChildren(h('div', { class: 'quiz-intro' }, [
       h('div', { class: 'qi-badge', text: `第 ${L.n} / ${round} 关` }),
@@ -149,7 +169,9 @@ export function render(app) {
     const useListen = st_autoSpeak() && speechSupported() && roll < 0.22;
     const type = useListen ? QUIZ_TYPE.L2T : (roll < 0.6 ? QUIZ_TYPE.W2T : QUIZ_TYPE.T2W);
 
-    const distractors = pickDistractors(session.pool, w, 3, S.r, { sensesOverlap });
+    // needZh：中文题面不许出现英文选项（日语词库约 10% 词条没取到中文释义）
+    const needZh = session.lang === 'ja' && !!w.zhSource && w.zhSource !== 'none';
+    const distractors = pickDistractors(session.pool, w, 3, S.r, { sensesOverlap, needZh });
     while (distractors.length < 3) {
       // 极端情况（词库太小）兜底：放宽重复限制
       const cand = session.pool[Math.floor(S.r() * session.pool.length)];
@@ -174,6 +196,9 @@ export function render(app) {
     // 测试脚本据此知道正确答案，才能「自动打穿 5 关」做回归（见 tools/check_wordgame_browser.mjs）。
     // 正常游玩不受影响（纯读取，无副作用）。
     window.__WORDHUT_TEST__ = { session, q, state: S };
+    // 题面用词随词库语言变化 —— 日语词库里写"英文单词"是错的（实测出现过
+    // 「选出对应的英文单词」配 塩/店/五/なぜ 这种自相矛盾的题面）
+    const ja = session.lang === 'ja';
     if (type === QUIZ_TYPE.L2T) {
       q.prompt = '';
       q.promptLabel = '听发音，选出对应的中文释义';
@@ -182,7 +207,7 @@ export function render(app) {
       q.promptLabel = '选出正确的中文释义';
     } else {
       q.prompt = shorten(w.t, 60);
-      q.promptLabel = '选出对应的英文单词';
+      q.promptLabel = ja ? '选出对应的日语单词' : '选出对应的英文单词';
     }
     return q;
   }
@@ -433,10 +458,10 @@ export function render(app) {
             ])
           : h('div', { class: 'q-word cn', text: q.prompt }),
       q.type !== QUIZ_TYPE.W2T && app.st.showPhonetic && q.word.p
-        ? h('div', { class: 'q-phon', text: `/${q.word.p}/` })
+        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p) })
         : null,
       q.type === QUIZ_TYPE.W2T && app.st.showPhonetic && q.word.p && !inFb
-        ? h('div', { class: 'q-phon', text: `/${q.word.p}/` })
+        ? h('div', { class: 'q-phon', text: readingText(session, q.word.p) })
         : null,
     ]);
 
@@ -498,7 +523,7 @@ export function render(app) {
 
   function speakWord(w) {
     app.play('click');
-    if (!say(w, { lang: app.st.accent })) app.toast('系统语音不可用', 'warn', 1400);
+    if (!say(w, { lang: voiceLang(session) })) app.toast('系统语音不可用', 'warn', 1400);
   }
 
   /* ---------------- 键盘 ---------------- */
@@ -521,11 +546,14 @@ export function render(app) {
     root.replaceChildren(node);
   }
 
-  // 加载词表后开局
+  // 加载词表后开局。
+  // 支持两种入口：
+  //   1) 正常开局：按当前词库 + 字母筛选抽题（launch）
+  //   2) 查单词页点「练这个词」：app.currentParams.drill 带着准备好的会话直接开
   (async () => {
     root.replaceChildren(h('div', { class: 'loading-line', text: '正在准备词表…' }));
     try {
-      session = await launch(app, 'quiz');
+      session = app.currentParams?.drill || await launch(app, 'quiz');
     } catch (e) {
       root.replaceChildren(panel([
         h('div', { class: 'sec-title' }, [h('h2', { text: '无法开始' })]),

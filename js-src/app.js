@@ -186,6 +186,27 @@ class App {
   get music() { return music; }
   get sfx() { return audio; }
 
+  /**
+   * 搜索 API（只读转发）。
+   * 挂在这里是为了测试脚本不必拼模块路径 —— 本地是 /wordgame/js/、部署产物是 /js-src/，
+   * 写死任一个都会在另一边 404（这个坑踩过好几次）。
+   */
+  get searchApi() {
+    return {
+      build: (onProgress) => import('./search.js').then((m) => m.buildIndex(onProgress)),
+      ready: () => import('./search.js').then((m) => m.isReady()),
+      run: (q, opt) => import('./search.js').then((m) => m.search(q, opt)),
+    };
+  }
+
+  /** 词库 API（只读转发）。同样是为了让测试脚本不必拼模块路径。 */
+  get vocabApi() {
+    return {
+      books: () => import('./vocab.js').then((m) => (m.loadBuiltinIndex(), m.allBooks())),
+      words: (id) => import('./vocab.js').then((m) => m.getWords(id)),
+    };
+  }
+
   addCoins(n) {
     this.s.coins = Math.max(0, (this.s.coins || 0) + n);
     this.markDirty();
@@ -330,6 +351,7 @@ class App {
 const SCREENS = {
   home: () => import('./screens/home.js'),
   library: () => import('./screens/library.js'),
+  search: () => import('./screens/search.js'),
   quiz: () => import('./modes/quiz.js'),
   cards: () => import('./modes/cards.js'),
   spell: () => import('./modes/spell.js'),

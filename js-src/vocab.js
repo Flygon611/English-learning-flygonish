@@ -175,14 +175,24 @@ export async function resolveWords(bookId, letters = []) {
 /**
  * 为出题挑干扰项：优先「同首字母 + 难度接近」的词，更迷惑也更有教学价值。
  * 返回 [{value, word}]，已保证与正确答案释义不重叠。
+ *
+ * @param {object[]} words 候选池
+ * @param {object} answer 正确答案词条
+ * @param {number} n 需要几个
+ * @param {function} r 随机源
+ * @param {{sensesOverlap?:Function, needZh?:boolean}} opt
+ *   needZh —— 正确答案用中文释义时，干扰项**也必须是中文**。
+ *   否则会出现「三个中文选项 + 一个英文」这种一眼就能排除掉的题目（实测踩过）。
  */
-export function pickDistractors(words, answer, n, r, { sensesOverlap } = {}) {
+export function pickDistractors(words, answer, n, r, { sensesOverlap, needZh = false } = {}) {
   const pool = words;
   const ansLen = Math.abs((answer.w || '').length);
   const scored = [];
   for (const w of pool) {
     if (w.w === answer.w) continue;
     if (!w.t) continue;
+    // 语言一致：中文题面就不许出现英文选项（JLPT 词库里有约 10% 未取到中文释义）
+    if (needZh && w.zhSource === 'none') continue;
     if (sensesOverlap && sensesOverlap(w.t, answer.t)) continue;   // 语义重复不做干扰项
     let score = 0;
     if (letterOf(w.w) === letterOf(answer.w)) score += 40;

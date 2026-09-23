@@ -1653,6 +1653,58 @@ b, strong { font-weight: 700; }
   100% { transform: translateY(106vh) scale(1.15); opacity: .15; }
 }
 
+/* ============================ 查单词页 ============================ */
+.search-body { gap: 14px; }
+.search-input {
+  font-size: 16px;
+  padding: 13px 15px;
+  /* 放大镜emoji 之外，这里用系统 search 类型自带的清除按钮 */
+}
+.search-scope {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 12px;
+}
+.search-note { margin-top: 10px; font-size: 12.5px; color: var(--text-3); }
+.search-summary {
+  margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 13px;
+}
+.search-stat b { font-size: 17px; color: var(--amber-text); font-variant-numeric: tabular-nums; }
+.search-books { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.search-list { display: flex; flex-direction: column; gap: 8px; }
+.search-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(255, 255, 255, .62);
+  border: 1px solid rgba(255, 255, 255, .8);
+  border-radius: var(--r); padding: 11px 14px;
+  transition: background var(--d-fast) var(--e-soft), transform var(--d-fast) var(--e-soft);
+}
+.search-row:hover { background: rgba(255, 255, 255, .88); transform: translateX(3px); }
+.sr-main { flex: 1; min-width: 0; }
+.sr-head { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.sr-w {
+  font-size: 19px; font-family: var(--font-en); font-weight: 700; color: #08304a;
+}
+.sr-p { font-size: 13px; color: var(--text-2); font-family: var(--font-en); }
+.sr-book {
+  font-size: 10.5px; font-weight: 700; color: #0f6d9c;
+  background: rgba(22, 168, 214, .14); border: 1px solid rgba(22, 168, 214, .3);
+  border-radius: var(--r-pill); padding: 1px 8px;
+}
+.sr-t { margin-top: 5px; font-size: 14px; color: var(--text); line-height: 1.5; }
+.sr-ex { margin-top: 7px; padding-left: 10px; border-left: 2px solid var(--line-2); }
+.sr-x { font-size: 12.5px; color: var(--text-2); font-family: var(--font-en); }
+.sr-xm { font-size: 12.5px; color: var(--text-3); }
+.sr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex: none; }
+.sr-star { font-size: 12px; }
+.sr-actions { display: flex; align-items: center; gap: 6px; }
+
+@media (max-width: 720px) {
+  .search-row { flex-direction: column; }
+  .sr-right { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+}
+
 /* ============================ 响应式 ============================ */
 @media (max-width: 720px) {
   body { font-size: 14px; }

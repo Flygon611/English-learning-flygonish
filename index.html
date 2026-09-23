@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#7fc9f5">
 <title>单词小栈 · Word Hut</title>
-<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-09-23T05:21:07Z 生成；请勿直接编辑。
+<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-09-23T06:18:45Z 生成；请勿直接编辑。
      源码在 wordgame/，改完重新运行构建脚本即可。
-     本次改写了 7 处静态素材路径、注入了 window.WORDHUT_CONFIG。 -->
+     本次改写了 8 处静态素材路径、注入了 window.WORDHUT_CONFIG。 -->
 <!-- 内联 favicon：避免浏览器请求 /favicon.ico 产生 404 -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237fc9f5'/%3E%3Ccircle cx='16' cy='13' r='7' fill='%23ffffff' opacity='.85'/%3E%3Cpath d='M4 24c4-4 8-4 12 0s8 4 12 0v8H4z' fill='%234ea83f'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./style.css">
@@ -47,6 +47,7 @@
     <div class="tb-title" id="topbar-title">单词小栈</div>
     <div class="tb-right">
       <span class="chip" id="chip-coins" title="金币：答题赚取"><img class="ico" src="ui/coin.png" alt=""><b id="coin-num">0</b></span>
+      <button class="tb-btn ico-only" data-go="search" title="查单词"><img class="ico" src="ui/scroll.png" alt=""></button>
       <button class="tb-btn ico-only" data-go="settings" title="设置"><img class="ico" src="ui/gear.png" alt=""></button>
     </div>
   </header>

@@ -2,7 +2,7 @@
 
 import { h, icon, say, sleep } from '../util.js';
 import { btn, panel, stars, progressBar, floatText, empty, sectionTitle } from '../ui/kit.js';
-import { launch, recordAnswer, finishSession, progressOf } from '../session.js';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang } from '../session.js';
 import { orderForExam } from '../srs.js';
 import { renderResult } from '../screens/result.js';
 
@@ -38,7 +38,7 @@ export function render(app) {
 
   async function speak(w) {
     app.play('click');
-    if (!say(w, { lang: app.st.accent })) app.toast('系统语音不可用', 'warn', 1400);
+    if (!say(w, { lang: voiceLang(session) })) app.toast('系统语音不可用', 'warn', 1400);
   }
 
   function rate(rating) {

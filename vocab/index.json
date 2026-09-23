@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated": "2026-09-22T12:57:11Z",
-  "source": "KyleBing/english-vocabulary (MIT) + ECDICT (MIT)",
+  "source": "KyleBing/english-vocabulary (MIT) + ECDICT (MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT) + OpenJLPT(CC BY-SA 4.0) + ECDICT(MIT)",
   "packs": [
     {
       "id": "cet4",
@@ -14,6 +14,18 @@
       "bytes": 389805
     },
     {
+      "id": "n5",
+      "name": "JLPT-N5",
+      "nameEn": "JLPT-N5",
+      "file": "n5.json.gz",
+      "count": 662,
+      "desc": "日语 JLPT N5（入门）",
+      "difficulty": 1,
+      "bytes": 30872,
+      "lang": "ja",
+      "readingLabel": "假名"
+    },
+    {
       "id": "cet6",
       "name": "六级",
       "nameEn": "CET-6",
@@ -22,6 +34,18 @@
       "desc": "大学英语六级核心词汇",
       "difficulty": 2,
       "bytes": 357923
+    },
+    {
+      "id": "n4",
+      "name": "JLPT-N4",
+      "nameEn": "JLPT-N4",
+      "file": "n4.json.gz",
+      "count": 632,
+      "desc": "日语 JLPT N4（初级）",
+      "difficulty": 2,
+      "bytes": 32918,
+      "lang": "ja",
+      "readingLabel": "假名"
     },
     {
       "id": "tem4",
@@ -34,6 +58,18 @@
       "bytes": 422518
     },
     {
+      "id": "n3",
+      "name": "JLPT-N3",
+      "nameEn": "JLPT-N3",
+      "file": "n3.json.gz",
+      "count": 1784,
+      "desc": "日语 JLPT N3（中级）",
+      "difficulty": 3,
+      "bytes": 114805,
+      "lang": "ja",
+      "readingLabel": "假名"
+    },
+    {
       "id": "tem8",
       "name": "专八",
       "nameEn": "TEM-8",
@@ -44,6 +80,18 @@
       "bytes": 1185633
     },
     {
+      "id": "n2",
+      "name": "JLPT-N2",
+      "nameEn": "JLPT-N2",
+      "file": "n2.json.gz",
+      "count": 1793,
+      "desc": "日语 JLPT N2（中高级）",
+      "difficulty": 4,
+      "bytes": 127086,
+      "lang": "ja",
+      "readingLabel": "假名"
+    },
+    {
       "id": "ielts",
       "name": "雅思",
       "nameEn": "IELTS",
@@ -52,6 +100,18 @@
       "desc": "雅思考试学术与生活词汇",
       "difficulty": 5,
       "bytes": 480160
+    },
+    {
+      "id": "n1",
+      "name": "JLPT-N1",
+      "nameEn": "JLPT-N1",
+      "file": "n1.json.gz",
+      "count": 3463,
+      "desc": "日语 JLPT N1（高级）",
+      "difficulty": 5,
+      "bytes": 252946,
+      "lang": "ja",
+      "readingLabel": "假名"
     },
     {
       "id": "toefl",
