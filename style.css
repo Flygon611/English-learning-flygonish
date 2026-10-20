@@ -17,21 +17,37 @@
    ============================================================================ */
 
 /* ============================ 自托管网页字体 ============================
-   两款字体都按原样分发：未子集化、未转换格式（仍是 TTF）、未改字体内部名称。
+   三款字体都按原样分发：未子集化、未转换格式（仍是 TTF）、未改字体内部名称。
    许可证正文随附在 wordgame/assets/fonts/ 下：
 
      檎风黑体 Alt CHS  ——  SIL Open Font License 1.1  →  fonts/OFL-1.1.txt
      07やさしさゴシック ——  M+ FONT LICENSE            →  fonts/Mplus-LICENSE_E.txt
                             IPA フォントライセンス v1.0 →  fonts/IPA-Font-License-1.0.txt
+     Andika（音标专用）——  SIL Open Font License 1.1  →  fonts/OFL-1.1-Andika.txt
 
    为什么不做子集化：IPA 许可第 1 条第 3 项把「取出字体信息另行生成」也算作派生程序，
    一旦派生就要履行第 3 条第 1 项（提供可再修改的原始形式、提供还原手段、不得沿用原名）。
    原样分发只需满足第 3 条第 2 项三条：不改名、不改动、随附许可副本 —— 已经满足。
-   代价是首次加载要下 17.7 MB，换来的是任何用户导入的词表都不会出现缺字方框。 */
+   代价是首次加载要下 18.5 MB，换来的是任何用户导入的词表都不会出现缺字方框。 */
 
 @font-face {
   font-family: "Qyn Flavor Grotesk Alt CHS";
   src: url("./assets/fonts/QynFlavorAltCHS-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 音标专用：Andika（SIL，OFL 1.1）。
+   为什么单独再挂一款字体：檎风黑体虽然收 IPA 字形，但那是「中文黑体里的顺带拉丁」——
+   实测字形比例不适合音标（小写 ɪ 顶到全高、ʃ 接近积分号、ː 几乎看不出、ˈ ˌ 细得像逗号）。
+   而且它还缺 ᵊ ᵻ ᵿ 等少数符号，缺的字会掉到系统字体，同一串音标出现两种字形。
+   Andika 是 SIL 专门为「识字 + 语言学」做的无衬线体，本项目用到的 51 个音标字符 **0 缺字**，
+   且组合附加符号（t͡ʃ 的连音符、n̩ 的成音节符）有专门的定位规则。
+   只用于音标元素，正文/词头仍用檎风黑体。 */
+@font-face {
+  font-family: "Andika";
+  src: url("./assets/fonts/Andika-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -131,6 +147,10 @@
   --font-ja: "07YasashisaGothic", "Qyn Flavor Grotesk Alt CHS", "Yu Gothic UI",
              "Hiragino Sans", "Microsoft YaHei UI", "Noto Sans CJK JP", sans-serif;
   --font-en: "Qyn Flavor Grotesk Alt CHS", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* 音标：Andika 打头，后面接几款「IPA 覆盖完整」的系统字体兜底。
+     ⚠ 这里**不能**把 --font-en 排在前面：那样 IPA 又会先命中中文黑体的拉丁字形，
+     等于白挂 Andika。字体栈是按字符逐个回退的，第一个有该字形的字体胜出。 */
+  --font-ipa: "Andika", "Charis SIL", "Doulos SIL", "Gentium Plus", "Segoe UI", sans-serif;
   /* 等宽保留系统字体：拼写模式的字母格靠它对齐 */
   --font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
 
@@ -1014,7 +1034,7 @@ b, strong { font-weight: 700; }
 }
 .wr-main { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
 .wr-w { font-family: var(--font-en); font-size: 15px; }
-.wr-p { font-size: 12px; color: var(--text-3); font-family: var(--font-en); }
+.wr-p { font-size: 12px; color: var(--text-3); font-family: var(--font-ipa); }
 .wr-t { font-size: 12.5px; color: var(--text-2); }
 .wr-right { display: flex; align-items: center; gap: 10px; }
 .wr-err { font-size: 12px; color: var(--bad); font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -1067,7 +1087,7 @@ b, strong { font-weight: 700; }
 .import-rows { display: flex; flex-direction: column; gap: 6px; }
 .ir-row { display: flex; align-items: baseline; gap: 9px; font-size: 13px; background: rgba(255, 255, 255, .62); border-radius: var(--r-sm); padding: 8px 12px; flex-wrap: wrap; }
 .ir-row b { font-family: var(--font-en); }
-.ir-p { color: var(--text-3); font-size: 12px; font-family: var(--font-en); }
+.ir-p { color: var(--text-3); font-size: 12px; font-family: var(--font-ipa); }
 .ir-t { color: var(--text-2); font-size: 12.5px; }
 .warn-box {
   background: linear-gradient(180deg, rgba(255, 214, 130, .45), rgba(255, 214, 130, .2));
@@ -1160,7 +1180,7 @@ b, strong { font-weight: 700; }
 }
 .q-word.cn { font-size: 20px; line-height: 1.55; }
 .q-word.cn > b { font-family: var(--font); font-size: 20px; font-weight: 700; }
-.q-phon { margin-top: 8px; font-size: 14px; color: var(--text-2); font-family: var(--font-en); }
+.q-phon { margin-top: 8px; font-size: 14px; color: var(--text-2); font-family: var(--font-ipa); }
 .q-listen { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 
 /* 喇叭按钮：Aero 招牌的玻璃圆钮，带一圈脉冲 */
@@ -1289,7 +1309,7 @@ b, strong { font-weight: 700; }
 .fb-star { margin-left: auto; font-size: 12.5px; color: var(--amber-text); letter-spacing: .06em; }
 .fb-word { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .fb-w { font-family: var(--font-en); font-size: 24px; color: #08304a; }
-.fb-p { font-size: 13px; color: var(--text-2); font-family: var(--font-en); }
+.fb-p { font-size: 13px; color: var(--text-2); font-family: var(--font-ipa); }
 .fb-t { margin-top: 7px; font-size: 14px; }
 .fb-ex { margin-top: 11px; padding-left: 12px; border-left: 3px solid rgba(11, 43, 62, .2); }
 .fb-x { font-size: 13.5px; color: var(--text-2); font-family: var(--font-en); }
@@ -1414,7 +1434,7 @@ b, strong { font-weight: 700; }
 .cf-hint { font-size: 12px; color: rgba(8, 48, 74, .65); font-weight: 600; }
 .cb-word { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .cb-word > b { font-family: var(--font-en); font-size: 28px; color: #06304a; }
-.cb-phon { font-size: 14px; color: rgba(8, 48, 74, .7); font-family: var(--font-en); }
+.cb-phon { font-size: 14px; color: rgba(8, 48, 74, .7); font-family: var(--font-ipa); }
 .cf-meaning { font-size: 20px; line-height: 1.6; font-weight: 600; color: #08304a; }
 .cf-ex { border-top: 1px solid rgba(8, 48, 74, .18); padding-top: 12px; width: 100%; }
 .cf-x { font-size: 14px; color: #1d5673; font-family: var(--font-en); }
@@ -1488,7 +1508,7 @@ b, strong { font-weight: 700; }
 .spell-card > * { position: relative; }
 .sc-label { font-size: 12.5px; color: var(--text-3); margin-bottom: 10px; font-weight: 600; }
 .sc-meaning { font-size: 22px; line-height: 1.6; font-weight: 700; color: #08304a; }
-.sc-phon { margin-top: 8px; font-size: 14px; color: var(--text-2); font-family: var(--font-en); }
+.sc-phon { margin-top: 8px; font-size: 14px; color: var(--text-2); font-family: var(--font-ipa); }
 .sc-meta { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-2); }
 .sc-meta > span { display: inline-flex; align-items: center; gap: 6px; }
 
@@ -1537,7 +1557,7 @@ b, strong { font-weight: 700; }
 .dm-row { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap; }
 .dm-k { flex: 0 0 62px; font-size: 12.5px; color: var(--text-3); }
 .dm-v { font-size: 14px; color: var(--text); display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
-.dm-v.mono { font-family: var(--font-en); }
+.dm-v.mono { font-family: var(--font-ipa); }
 
 .dict-tag {
   display: inline-block; padding: 2px 9px; border-radius: var(--r-pill);
@@ -1905,7 +1925,7 @@ b, strong { font-weight: 700; }
 .sr-w {
   font-size: 19px; font-family: var(--font-en); font-weight: 700; color: #08304a;
 }
-.sr-p { font-size: 13px; color: var(--text-2); font-family: var(--font-en); }
+.sr-p { font-size: 13px; color: var(--text-2); font-family: var(--font-ipa); }
 .sr-book {
   font-size: 10.5px; font-weight: 700; color: #0f6d9c;
   background: rgba(22, 168, 214, .14); border: 1px solid rgba(22, 168, 214, .3);

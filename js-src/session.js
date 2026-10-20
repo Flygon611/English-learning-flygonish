@@ -19,12 +19,41 @@ export function voiceLang(session, fallbackAccent = 'en-US') {
 }
 
 /**
+ * 音标记号归一化：把 ECDICT 风格的 ASCII 记号换成真正的 IPA 符号。
+ *
+ * 为什么需要：词库的音标来源是 ECDICT，它用 **ASCII 撇号** 表示主重音、**ASCII 逗号**
+ * 表示次重音、**ASCII 冒号** 表示长音 —— 实测 57,596 条音标里 32,755 条（56.9%）带撇号。
+ * 渲染出来就是 /ə'brʌptli/，那个撇号在视觉上是引号、位置也偏高；而正确写法是 /əˈbrʌptli/。
+ * 同一份数据里还有 24% 的词条已经用了 ˈ ˌ，于是卡片上一会儿是撇号一会儿是竖线，看起来「音标坏了」。
+ *
+ * 只做记号替换，不猜音素、不改读音。日文假名原样返回。
+ *   ' → ˈ  (U+02C8)  主重音     , → ˌ (U+02CC)  次重音     : → ː (U+02D0)  长音
+ * 另外 ECDICT 偶尔把多个读音塞进同一条（"æbˈsɔrb; æbˈzɔrb; əbˈsɔrb"），只留第一条，否则卡片上会很长。
+ */
+export function normalizeIPA(p) {
+  if (!p) return '';
+  let s = String(p).trim();
+  if (/[\u3040-\u30ff\u4e00-\u9fff]/.test(s)) return s;   // 假名/汉字：不归 IPA 管
+  s = s.replace(/^\/+|\/+$/g, '').trim();
+  const semi = s.indexOf(';');
+  if (semi > 0) s = s.slice(0, semi).trim();
+  s = s
+    .replace(/'/g, 'ˈ')
+    .replace(/,/g, 'ˌ')
+    .replace(/:/g, 'ː')
+    .replace(/\./g, '')          // 音节点：14px 下是噪点，词典详情与卡片统一去掉
+    .replace(/\s+/g, ' ')
+    .trim();
+  return s;
+}
+
+/**
  * 读音怎么显示。
  * 英文是 IPA，习惯用 /…/ 包起来；日语是假名，套斜杠反而奇怪，直接显示。
  */
 export function readingText(session, p) {
   if (!p) return '';
-  return session && session.lang === 'ja' ? p : `/${p}/`;
+  return session && session.lang === 'ja' ? p : `/${normalizeIPA(p)}/`;
 }
 
 /**

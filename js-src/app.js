@@ -352,13 +352,13 @@ const SCREENS = {
   home: () => import('./screens/home.js?v=f7ae5616'),
   library: () => import('./screens/library.js?v=8baf07f6'),
   search: () => import('./screens/search.js?v=7987798c'),
-  dict: () => import('./screens/dict.js?v=62e8a764'),
+  dict: () => import('./screens/dict.js?v=c71704e7'),
   quiz: () => import('./modes/quiz.js?v=d1cb0289'),
   cards: () => import('./modes/cards.js?v=38fe724c'),
   spell: () => import('./modes/spell.js?v=db4b1607'),
   stats: () => import('./screens/stats.js?v=9abe6b8d'),
   settings: () => import('./screens/settings.js?v=c335ebc7'),
-  importer: () => import('./screens/importer.js?v=9476ce79'),
+  importer: () => import('./screens/importer.js?v=913f22f7'),
 };
 
 export const app = new App();

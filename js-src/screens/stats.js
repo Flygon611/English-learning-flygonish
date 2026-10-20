@@ -4,7 +4,7 @@ import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js?v=1b053a4f';
 import { btn, panel, statBox, progressBar, stars, empty, sectionTitle } from '../ui/kit.js?v=2f24ea8c';
 import { getWords, letterBreakdown, groupOf, groupsFor, downloadText, findBook } from '../vocab.js?v=4c022754';
 import { statsOf, wordKey, MAX_STAR, isNew } from '../srs.js?v=e54c36c9';
-import { readingText, langAttr } from '../session.js?v=c98f7362';
+import { readingText, langAttr } from '../session.js?v=47c6b758';
 import { store } from '../core/storage.js?v=c9ee2a15';
 
 export function render(app) {

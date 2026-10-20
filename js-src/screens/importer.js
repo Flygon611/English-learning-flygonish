@@ -3,6 +3,7 @@
 import { h, icon, fmtBytes } from '../util.js?v=1b053a4f';
 import { btn, panel, empty, statBox } from '../ui/kit.js?v=2f24ea8c';
 import { parseImport, addUserBook, letterBreakdown, allBooks } from '../vocab.js?v=4c022754';
+import { normalizeIPA } from '../session.js?v=47c6b758';
 
 const SAMPLE = `# 1) 制表符 / 逗号 / 竖线 / 冒号分隔（最常见）
 abandon	v. 抛弃，放弃
@@ -75,7 +76,7 @@ export function render(app) {
       for (const w of words.slice(0, 5)) {
         sampleRows.append(h('div', { class: 'ir-row' }, [
           h('b', { text: w.w }),
-          h('span', { class: 'ir-p', text: w.p ? `/${w.p}/` : '' }),
+          h('span', { class: 'ir-p', text: w.p ? `/${normalizeIPA(w.p)}/` : '' }),
           h('span', { class: 'ir-t', text: w.t || '（无释义）' }),
         ]));
       }

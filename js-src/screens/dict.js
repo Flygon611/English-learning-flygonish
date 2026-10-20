@@ -6,7 +6,7 @@
 import { h, icon, say, speechSupported } from '../util.js?v=1b053a4f';
 import { btn, panel, empty, stars } from '../ui/kit.js?v=2f24ea8c';
 import { getEntry, getMeta, searchAffix } from '../dict.js?v=df0f2e7b';
-import { langAttr } from '../session.js?v=c98f7362';
+import { langAttr, normalizeIPA } from '../session.js?v=47c6b758';
 import { findBook } from '../vocab.js?v=4c022754';
 import { wordKey, MAX_STAR } from '../srs.js?v=e54c36c9';
 
@@ -131,9 +131,12 @@ export function render(app) {
       ]));
     }
     if (e.ipa) {
+      // 词典音标本来就带 /…/，但记号和词库那边不统一（同一份 ECDICT 的两套写法），
+      // 这里统一走一遍 normalizeIPA，保证卡片、词典、搜索三处显示的是同一种写法。
+      const ipa = normalizeIPA(e.ipa) || String(e.ipa);
       metaRow.append(h('div', { class: 'dm-row' }, [
         h('span', { class: 'dm-k', text: '音标' }),
-        h('span', { class: 'dm-v mono', text: e.ipa }),
+        h('span', { class: 'dm-v mono', text: `/${ipa}/` }),
       ]));
     }
     // 「读音」只对日语有意义（那是假名）。英语的读音和音标是同一类东西，

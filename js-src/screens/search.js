@@ -3,7 +3,7 @@
 import { h, icon, say } from '../util.js?v=1b053a4f';
 import { btn, panel, stars, empty, segmented } from '../ui/kit.js?v=2f24ea8c';
 import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js?v=de5a369e';
-import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js?v=c98f7362';
+import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js?v=47c6b758';
 import { searchAffix } from '../dict.js?v=df0f2e7b';
 
 const LIMIT = 200;

@@ -3,7 +3,7 @@
 
 import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js?v=1b053a4f';
 import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js?v=2f24ea8c';
-import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=c98f7362';
+import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=47c6b758';
 import { pickDistractors, LETTERS } from '../vocab.js?v=4c022754';
 import { renderResult } from '../screens/result.js?v=9bcc5429';
 import { audio } from '../audio.js?v=6550a8e0';
