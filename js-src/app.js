@@ -193,9 +193,9 @@ class App {
    */
   get searchApi() {
     return {
-      build: (onProgress) => import('./search.js?v=de5a369e').then((m) => m.buildIndex(onProgress)),
-      ready: () => import('./search.js?v=de5a369e').then((m) => m.isReady()),
-      run: (q, opt) => import('./search.js?v=de5a369e').then((m) => m.search(q, opt)),
+      build: (onProgress) => import('./search.js?v=a5b91f55').then((m) => m.buildIndex(onProgress)),
+      ready: () => import('./search.js?v=a5b91f55').then((m) => m.isReady()),
+      run: (q, opt) => import('./search.js?v=a5b91f55').then((m) => m.search(q, opt)),
     };
   }
 
@@ -351,8 +351,8 @@ class App {
 const SCREENS = {
   home: () => import('./screens/home.js?v=f7ae5616'),
   library: () => import('./screens/library.js?v=8baf07f6'),
-  search: () => import('./screens/search.js?v=7987798c'),
-  dict: () => import('./screens/dict.js?v=c71704e7'),
+  search: () => import('./screens/search.js?v=8a717803'),
+  dict: () => import('./screens/dict.js?v=cd70230c'),
   quiz: () => import('./modes/quiz.js?v=d1cb0289'),
   cards: () => import('./modes/cards.js?v=38fe724c'),
   spell: () => import('./modes/spell.js?v=db4b1607'),

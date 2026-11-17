@@ -5,7 +5,7 @@
 
 import { h, icon, say, speechSupported } from '../util.js?v=1b053a4f';
 import { btn, panel, empty, stars } from '../ui/kit.js?v=2f24ea8c';
-import { getEntry, getMeta, searchAffix } from '../dict.js?v=df0f2e7b';
+import { getEntry, getMeta, searchAffix } from '../dict.js?v=6c5c5c70';
 import { langAttr, normalizeIPA } from '../session.js?v=47c6b758';
 import { findBook } from '../vocab.js?v=4c022754';
 import { wordKey, MAX_STAR } from '../srs.js?v=e54c36c9';
@@ -151,6 +151,19 @@ export function render(app) {
       metaRow.append(h('div', { class: 'dm-row' }, [
         h('span', { class: 'dm-k', text: '词形' }),
         h('span', { class: 'dm-v', text: e.forms }),
+      ]));
+    }
+    // 热度：ECDICT 的柯林斯星级 / 牛津 3000 核心词 / BNC 与当代语料库词频。
+    // 这三个标注能回答「这个词到底重不重要」，比只看它属于哪个考试词库更有用。
+    if (e.collins || e.oxford || e.bnc || e.frq) {
+      const bits = [];
+      if (e.collins) bits.push(`柯林斯 ${'★'.repeat(Math.min(e.collins, 5))}${'☆'.repeat(Math.max(0, 5 - e.collins))}`);
+      if (e.oxford) bits.push('牛津 3000');
+      if (e.bnc) bits.push(`BNC ${e.bnc}`);
+      if (e.frq) bits.push(`当代 ${e.frq}`);
+      metaRow.append(h('div', { class: 'dm-row' }, [
+        h('span', { class: 'dm-k', text: '热度' }),
+        h('span', { class: 'dm-v dm-hot', text: bits.join(' · ') }),
       ]));
     }
     if (pr) {

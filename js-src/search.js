@@ -41,7 +41,7 @@ export function buildIndex(onProgress) {
       try {
         const words = await getWords(b.id);
         for (const w of words) {
-          index.push({ book: b.id, bookName: b.name, difficulty: b.difficulty ?? 3, lang: b.lang || 'en', w });
+          index.push({ book: b.id, bookName: b.name, difficulty: b.difficulty ?? 3, lang: b.lang || 'en', w, sw: stripWord(w.w) });
         }
       } catch (e) {
         console.warn('[search] 读不到词库', b.id, e);
@@ -62,10 +62,17 @@ export function buildIndex(onProgress) {
 const norm = (s) => String(s ?? '').trim().toLowerCase();
 
 /**
+ * ECDICT 的 sw（strip-word）：去掉所有非字母数字并转小写。
+ * 用来让 long-time / longtime / long time 互相查得到 —— 同一个词在不同资料里
+ * 连字符写法不统一，用户很可能按另一种写法搜。
+ */
+export const stripWord = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/**
  * 简单相关性打分。返回 0 表示不命中。
  * 分数越高越相关；同一词条可能被多个字段命中，取最高分。
  */
-function scoreOf(entry, q) {
+function scoreOf(entry, q, qSw) {
   const w = norm(entry.w.w);
   const p = norm(entry.w.p);
   const t = norm(entry.w.t);
@@ -73,9 +80,11 @@ function scoreOf(entry, q) {
   // 完全不相等/不含 就是没命中
   if (w === q) return 1000;
   if (p && p === q) return 900;
+  if (qSw && entry.sw && entry.sw === qSw) return 850;   // 去掉连字符/空格后一致
   if (w.startsWith(q)) return 700;
   if (p && p.startsWith(q)) return 600;
   if (t.startsWith(q)) return 500;
+  if (qSw && entry.sw && entry.sw.startsWith(qSw)) return 420;
   if (w.includes(q)) return 400;
   if (p && p.includes(q)) return 300;
   if (t.includes(q)) return 200;
@@ -94,11 +103,13 @@ export function search(query, opt = {}) {
   const limit = opt.limit ?? 200;
   const scope = opt.scope || 'all';
   if (!q) return [];
+  // sw 只在「全是拉丁/数字」的查询上参与匹配（中文/假名没有 strip 的意义）
+  const qSw = /^[a-z0-9\-. ']+$/i.test(q) ? stripWord(q) : '';
 
   const out = [];
   for (const e of index) {
     if (scope === 'current' && opt.bookId && e.book !== opt.bookId) continue;
-    const s = scoreOf(e, q);
+    const s = scoreOf(e, q, qSw);
     if (!s) continue;
     const key = wordKey(e.book, e.w.w);
     const pr = opt.progress ? opt.progress.get(key) : null;

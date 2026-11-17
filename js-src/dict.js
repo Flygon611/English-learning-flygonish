@@ -52,6 +52,46 @@ export async function getEntry(word) {
   return map.get(String(word).toLowerCase()) || null;
 }
 
+/* ---------------- 变形词 → 原形 ----------------
+   ECDICT 的 exchange 字段带 lemma 信息（`0:` 是原形、p/d/i/3/r/t/s 是各种变形），
+   构建期已经展开成 { 变形: 原形 } 的索引（tools/build_lemma.py）。
+   只在「直接搜不到」时才加载，所以平时不占流量。 */
+const _lemma = { forms: null, promise: null };
+
+export async function loadLemmaIndex() {
+  if (_lemma.forms) return _lemma.forms;
+  if (_lemma.promise) return _lemma.promise;
+  _lemma.promise = (async () => {
+    try {
+      const res = await fetch(assetUrl('dict', 'lemma.json.gz'));
+      if (!res.ok) throw new Error('lemma 索引读取失败');
+      const buf = await res.arrayBuffer();
+      if (typeof DecompressionStream !== 'function') throw new Error('浏览器不支持 gzip');
+      const ds = new DecompressionStream('gzip');
+      const text = await new Response(new Blob([buf]).stream().pipeThrough(ds)).text();
+      const doc = JSON.parse(text);
+      _lemma.forms = new Map(Object.entries(doc.forms || {}));
+      return _lemma.forms;
+    } catch (e) {
+      _lemma.promise = null;      // 失败不缓存，下次再试
+      throw e;
+    }
+  })();
+  return _lemma.promise;
+}
+
+/** 查一个变形词的原形；查不到返回 null。 */
+export async function getLemma(word) {
+  const key = String(word ?? '').trim().toLowerCase();
+  if (!key) return null;
+  try {
+    const map = await loadLemmaIndex();
+    return map.get(key) || null;
+  } catch {
+    return null;
+  }
+}
+
 /** 词缀表（搜 un- / -tion 用）。 */
 export async function getAffixes() {
   if (_affix.list) return _affix.list;

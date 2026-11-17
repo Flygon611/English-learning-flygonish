@@ -2,9 +2,9 @@
 
 import { h, icon, say } from '../util.js?v=1b053a4f';
 import { btn, panel, stars, empty, segmented } from '../ui/kit.js?v=2f24ea8c';
-import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js?v=de5a369e';
+import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js?v=a5b91f55';
 import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js?v=47c6b758';
-import { searchAffix } from '../dict.js?v=df0f2e7b';
+import { searchAffix, getLemma } from '../dict.js?v=6c5c5c70';
 
 const LIMIT = 200;
 
@@ -84,6 +84,7 @@ export function render(app) {
       return;
     }
     const t0 = performance.now();
+    ui.lemmaHint = '';
     ui.results = search(q, {
       scope: ui.scope,
       bookId: app.s.currentBook,
@@ -91,6 +92,25 @@ export function render(app) {
       progress: app.progress,
       limit: LIMIT,
     });
+    // 直接搜不到时，试一次「变形词 → 原形」：用户常输入 observed / taken / teeth 这类变形，
+    // 词库里只收原形。索引来自 ECDICT exchange 的 0/p/d/i/3/r/t/s（见 tools/build_lemma.py）。
+    ui.lemmaHint = '';
+    if (!ui.results.length) {
+      const lemma = await getLemma(q);
+      if (lemma) {
+        const rs = search(lemma, {
+          scope: ui.scope,
+          bookId: app.s.currentBook,
+          onlyStudied: ui.onlyStudied,
+          progress: app.progress,
+          limit: LIMIT,
+        });
+        if (rs.length) {
+          ui.results = rs;
+          ui.lemmaHint = `「${q}」是 ${lemma} 的变形，已显示 ${lemma} 的词条`;
+        }
+      }
+    }
     const ms = Math.round(performance.now() - t0);
 
     /* 词缀：搜「un-」「-tion」这类写法时，词库里当然查不到「单词」，
@@ -229,7 +249,11 @@ export function render(app) {
     if (ui.results.length >= LIMIT) {
       list.append(h('div', { class: 'search-note', text: `只显示前 ${LIMIT} 条，输入更完整的关键词可缩小范围` }));
     }
-    resultBox.replaceChildren(panel([list], 'pad'));
+    // 「observed 是 observe 的变形」这类提示：让用户知道系统替他换了查询词
+    const hint = ui.lemmaHint
+      ? h('div', { class: 'search-note lemma-hint', text: ui.lemmaHint })
+      : null;
+    resultBox.replaceChildren(panel(hint ? [hint, list] : [list], 'pad'));
   }
 
   /* ---------------- 开练 ---------------- */
