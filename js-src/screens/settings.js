@@ -158,6 +158,8 @@ export function render(app) {
             if (!ok) return;
             app.s.settings = { ...DEFAULT_SETTINGS };
             app.saveAll();
+            // 主题是即时生效的：恢复默认后要立刻按 auto 重新上色，不能等刷新
+            app.setSetting('theme', DEFAULT_SETTINGS.theme);
             app.toast('已恢复默认设置', 'ok');
             renderAll();
           },

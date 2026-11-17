@@ -380,7 +380,7 @@ const SCREENS = {
   cards: () => import('./modes/cards.js?v=b59755a7'),
   spell: () => import('./modes/spell.js?v=3d46af87'),
   stats: () => import('./screens/stats.js?v=d72d98e5'),
-  settings: () => import('./screens/settings.js?v=d92df85c'),
+  settings: () => import('./screens/settings.js?v=93f25511'),
   importer: () => import('./screens/importer.js?v=467080ed'),
 };
 
