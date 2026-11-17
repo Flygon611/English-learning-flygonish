@@ -1,7 +1,7 @@
 // 拼写填空：看中文释义拼出英文单词。
 // 两种作答方式：键盘输入（默认）/ 从打乱的字母里点选。
 
-import { h, icon, say, shorten } from '../util.js?v=1b053a4f';
+import { h, icon, say, shorten, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, progressBar, floatText, shake, hearts, stars } from '../ui/kit.js?v=2f24ea8c';
 import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=47c6b758';
 import { normalizeSpell, isSpellCorrect, similarity, diffChars, maskWord, letterBank } from '../spell.js?v=5a536d8a';
@@ -164,7 +164,7 @@ export function render(app) {
     /* 题干：中文释义 */
     const card = h('div', { class: 'spell-card' }, [
       h('div', { class: 'sc-label', text: session.lang === 'ja' ? '请拼出对应的日语单词' : '请拼出对应的英文单词' }),
-      h('div', { class: 'sc-meaning', text: w.t }),
+      h('div', { class: 'sc-meaning' }, glossNodes(w.t)),
       w.p && app.st.showPhonetic && S.status !== 'ask'
         ? h('div', { class: 'sc-phon', text: readingText(session, w.p), ...langAttr(session.lang) })
         : null,
@@ -282,7 +282,7 @@ export function render(app) {
           h('b', { text: w.w, ...langAttr(session.lang) }),
           h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w) }, [icon('soundOn', 'ico sm')]),
         ]),
-        h('div', { class: 'sf-t', text: w.t }),
+        h('div', { class: 'sf-t' }, glossNodes(w.t)),
         app.st.showExample && w.x ? h('div', { class: 'fb-ex' }, [
           h('div', { class: 'fb-x', text: w.x, ...langAttr(session.lang) }),
           w.xm ? h('div', { class: 'fb-xm', text: w.xm }) : null,
@@ -299,7 +299,7 @@ export function render(app) {
           h('span', { text: '正确拼写：' }), h('b', { text: w.w, ...langAttr(session.lang) }),
           h('button', { class: 'speak-btn', type: 'button', onclick: () => speak(w) }, [icon('soundOn', 'ico sm')]),
         ]),
-        h('div', { class: 'sf-t', text: w.t }),
+        h('div', { class: 'sf-t' }, glossNodes(w.t)),
         h('div', { class: 'answer-actions' }, [
           btn({ label: '记住了，下一题', iconName: 'arrowRight', size: 'sm', kind: 'primary', onclick: next }),
         ]),

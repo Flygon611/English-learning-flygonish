@@ -2000,3 +2000,18 @@ b, strong { font-weight: 700; }
     background: #f4fbff;
   }
 }
+
+/* ============================ 词性标记 ============================
+   释义里的 n. / v. / vt. / adj. … 由 util.glossNodes 包成 <span class="pos">。
+   单独用一套衬线斜体 + 主色，和义项正文区分开：一眼能看出这段讲了几个词性，
+   也避免「v. 说；vt. 讲」这种前缀和释义糊成一片。 */
+.pos {
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: .92em;
+  color: #1478a8;
+  letter-spacing: .01em;
+  margin-right: 1px;
+}
+.qo-text .pos, .q-word .pos, .q-word.cn .pos { color: #0f6c96; }

@@ -1,6 +1,6 @@
 // 翻卡记忆：翻卡看释义 + 自评「不认识 / 模糊 / 认识 / 熟练」，按自评排复习间隔。
 
-import { h, icon, say, sleep, speechSupported } from '../util.js?v=1b053a4f';
+import { h, icon, say, sleep, speechSupported, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, stars, progressBar, floatText, empty, sectionTitle } from '../ui/kit.js?v=2f24ea8c';
 import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=47c6b758';
 import { orderForExam } from '../srs.js?v=e54c36c9';
@@ -163,7 +163,7 @@ export function render(app) {
         h('b', { text: word.w, ...langAttr(session.lang) }),
         word.p ? h('span', { class: 'cb-phon', text: readingText(session, word.p), ...langAttr(session.lang) }) : null,
       ]),
-      h('div', { class: 'cf-meaning', text: word.t }),
+      h('div', { class: 'cf-meaning' }, glossNodes(word.t)),
       word.x ? h('div', { class: 'cf-ex' }, [
         h('div', { class: 'cf-x', text: word.x, ...langAttr(session.lang) }),
         word.xm ? h('div', { class: 'cf-xm', text: word.xm }) : null,

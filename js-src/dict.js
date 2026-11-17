@@ -5,7 +5,7 @@
 // 按「首字符码位 % 24」分成 24 个桶，每个 100~200 KB。
 // ⚠ bucketOf 必须与 tools/build_dict.py 的 bucket_of() 完全一致。
 
-import { assetUrl } from './util.js?v=1b053a4f';
+import { assetUrl } from './util.js?v=8b589faf';
 
 const BUCKETS = 24;
 

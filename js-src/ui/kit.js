@@ -1,6 +1,6 @@
 // UI 组件工具箱：所有界面元素都从这里拼装，保证外观一致。
 
-import { h, icon } from '../util.js?v=1b053a4f';
+import { h, icon } from '../util.js?v=8b589faf';
 import { MAX_STAR } from '../srs.js?v=e54c36c9';
 
 /* ---------------- 按钮 ---------------- */

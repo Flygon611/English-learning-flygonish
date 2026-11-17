@@ -53,6 +53,30 @@ export function h(tag, attrs = {}, children = []) {
   return el;
 }
 
+/**
+ * 把释义字符串切成节点数组：词性前缀（vt. / n. / adj. …）包成 <span class="pos">，
+ * 这样可以用不同字体/颜色把「词性」和「义项」区分开，一眼看出几个词性。
+ * 例：`n. 苹果；vt. 投掷` → [span.pos("n."), " 苹果；", span.pos("vt."), " 投掷"]
+ */
+const POS_TOKEN = /(^|[；;])\s*((?:[a-z]{1,5}\.\s*){1,2})/gi;
+export function glossNodes(text) {
+  const s = String(text ?? '');
+  const out = [];
+  let last = 0;
+  let m;
+  POS_TOKEN.lastIndex = 0;
+  while ((m = POS_TOKEN.exec(s))) {
+    const start = m.index + m[1].length;
+    const pos = m[2].trim();
+    if (start > last) out.push(s.slice(last, start));
+    out.push(h('span', { class: 'pos', text: pos }));
+    last = POS_TOKEN.lastIndex;
+  }
+  if (last < s.length) out.push(s.slice(last));
+  return out.filter((x) => x !== '');
+}
+
+
 /** Kenney UI 图标（assets/ui，32×32 像素画，image-rendering: pixelated）。 */
 export function icon(name, cls = 'ico') {
   return h('img', { class: cls, src: assetUrl('ui', `${name}.png`), alt: '', draggable: 'false' });

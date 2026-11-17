@@ -3,7 +3,7 @@
 // 从「查单词」点进来（app.go('dict', { word, lang })）。
 // 数据按需从 assets/dict/<bucket>.json.gz 拉取，见 js/dict.js。
 
-import { h, icon, say, speechSupported } from '../util.js?v=1b053a4f';
+import { h, icon, say, speechSupported, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, empty, stars } from '../ui/kit.js?v=2f24ea8c';
 import { getEntry, getMeta, searchAffix } from '../dict.js?v=6c5c5c70';
 import { langAttr, normalizeIPA } from '../session.js?v=47c6b758';
@@ -187,7 +187,7 @@ export function render(app) {
           h('div', { class: 'se-head' }, [
             s.posZh ? h('span', { class: 'se-pos', text: s.posZh }) : null,
             s.domain ? h('span', { class: 'se-dom', text: s.domain }) : null,
-            h('span', { class: 'se-zh', text: (s.zh || []).join('；'), ...langAttr('zh') }),
+            h('span', { class: 'se-zh', ...langAttr('zh') }, glossNodes((s.zh || []).join('；'))),
           ]),
         ]);
         if (s.en) li.append(h('div', { class: 'se-en', text: s.en }));

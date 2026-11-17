@@ -1,6 +1,6 @@
 // 导入词库：粘贴文本 / 选择文件 → 解析预览 → 保存为自定义词库。
 
-import { h, icon, fmtBytes } from '../util.js?v=1b053a4f';
+import { h, icon, fmtBytes, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, empty, statBox } from '../ui/kit.js?v=2f24ea8c';
 import { parseImport, addUserBook, letterBreakdown, allBooks } from '../vocab.js?v=4c022754';
 import { normalizeIPA } from '../session.js?v=47c6b758';
@@ -77,7 +77,7 @@ export function render(app) {
         sampleRows.append(h('div', { class: 'ir-row' }, [
           h('b', { text: w.w }),
           h('span', { class: 'ir-p', text: w.p ? `/${normalizeIPA(w.p)}/` : '' }),
-          h('span', { class: 'ir-t', text: w.t || '（无释义）' }),
+          h('span', { class: 'ir-t' }, w.t ? glossNodes(w.t) : '（无释义）'),
         ]));
       }
 

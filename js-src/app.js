@@ -3,7 +3,7 @@
 import { store } from './core/storage.js?v=c9ee2a15';
 import { allBooks, setUserBooks, userBooks } from './vocab.js?v=4c022754';
 import { importProgress, exportProgress, isCorruptKey } from './srs.js?v=e54c36c9';
-import { h, $, dayKey, daysBetween } from './util.js?v=1b053a4f';
+import { h, $, dayKey, daysBetween } from './util.js?v=8b589faf';
 import { audio } from './audio.js?v=6550a8e0';
 import { music } from './music.js?v=bb44cee2';
 // 默认设置/场景常量放在叶子模块里，避免各 screen 反向 import app.js 造成循环依赖
@@ -351,14 +351,14 @@ class App {
 const SCREENS = {
   home: () => import('./screens/home.js?v=f7ae5616'),
   library: () => import('./screens/library.js?v=8baf07f6'),
-  search: () => import('./screens/search.js?v=8a717803'),
-  dict: () => import('./screens/dict.js?v=cd70230c'),
-  quiz: () => import('./modes/quiz.js?v=d1cb0289'),
-  cards: () => import('./modes/cards.js?v=38fe724c'),
-  spell: () => import('./modes/spell.js?v=db4b1607'),
-  stats: () => import('./screens/stats.js?v=9abe6b8d'),
+  search: () => import('./screens/search.js?v=cc205b01'),
+  dict: () => import('./screens/dict.js?v=d3b63bfc'),
+  quiz: () => import('./modes/quiz.js?v=8960b6c5'),
+  cards: () => import('./modes/cards.js?v=b59755a7'),
+  spell: () => import('./modes/spell.js?v=3d46af87'),
+  stats: () => import('./screens/stats.js?v=d72d98e5'),
   settings: () => import('./screens/settings.js?v=c335ebc7'),
-  importer: () => import('./screens/importer.js?v=913f22f7'),
+  importer: () => import('./screens/importer.js?v=467080ed'),
 };
 
 export const app = new App();

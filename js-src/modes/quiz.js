@@ -1,7 +1,7 @@
 // 四选一闯关：5 关连闯，答错扣血，连击加成。
 // 题型：看英文选中文 / 看中文选英文 / 听音选词。
 
-import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep } from '../util.js?v=1b053a4f';
+import { h, icon, say, shorten, sensesOverlap, speechSupported, sleep, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, hearts, floatText, shake, celebrate, chip } from '../ui/kit.js?v=2f24ea8c';
 import { launch, recordAnswer, finishSession, progressOf, voiceLang, readingText, langAttr, speakWord as speakWordShared } from '../session.js?v=47c6b758';
 import { pickDistractors, LETTERS } from '../vocab.js?v=4c022754';
@@ -506,7 +506,7 @@ export function render(app) {
               h('b', { text: q.prompt, ...langAttr(session.lang) }),
               h('button', { class: 'speak-btn', type: 'button', title: '朗读', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico sm')]),
             ])
-          : h('div', { class: 'q-word cn', text: q.prompt }),
+          : h('div', { class: 'q-word cn' }, glossNodes(q.prompt)),
       !q.showPromptWord && app.st.showPhonetic && phonHint
         ? h('div', { class: 'q-phon', text: readingText(session, phonHint), ...langAttr(session.lang) })
         : null,
@@ -533,11 +533,13 @@ export function render(app) {
         onclick: () => choose(i),
       }, [
         h('span', { class: 'qo-key', text: String(i + 1) }),
-        h('span', {
-          class: 'qo-text',
-          text: q.optionField === 'w' ? o.w : q.optionField === 'p' ? o.p : shorten(o.t, 40),
-          ...langAttr(q.optionField === 't' ? 'zh' : session.lang),
-        }),
+        q.optionField === 't'
+          ? h('span', { class: 'qo-text', ...langAttr('zh') }, glossNodes(shorten(o.t, 40)))
+          : h('span', {
+            class: 'qo-text',
+            text: q.optionField === 'w' ? o.w : o.p,
+            ...langAttr(q.optionField === 'w' ? session.lang : session.lang),
+          }),
         inFb && isCorrect ? icon('check', 'ico sm') : null,
         inFb && isPicked && !isCorrect ? icon('close', 'ico sm') : null,
       ]));
@@ -559,7 +561,7 @@ export function render(app) {
           h('button', { class: 'speak-btn', type: 'button', title: '朗读单词', onclick: () => speakWord(q.word) }, [icon('soundOn', 'ico sm')]),
           q.word.p ? h('span', { class: 'fb-p', text: readingText(session, q.word.p), ...langAttr(session.lang) }) : null,
         ]),
-        h('div', { class: 'fb-t', text: q.word.t }),
+        h('div', { class: 'fb-t' }, glossNodes(q.word.t)),
         app.st.showExample && q.word.x
           ? h('div', { class: 'fb-ex' }, [
               h('div', { class: 'fb-x', text: q.word.x, ...langAttr(session.lang) }),

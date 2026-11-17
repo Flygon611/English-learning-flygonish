@@ -1,6 +1,6 @@
 // 统计页：掌握度分布、逐字母进度、错词本、历史成绩、数据管理。
 
-import { h, icon, fmtPct, fmtTime, fmtBytes } from '../util.js?v=1b053a4f';
+import { h, icon, fmtPct, fmtTime, fmtBytes, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, statBox, progressBar, stars, empty, sectionTitle } from '../ui/kit.js?v=2f24ea8c';
 import { getWords, letterBreakdown, groupOf, groupsFor, downloadText, findBook } from '../vocab.js?v=4c022754';
 import { statsOf, wordKey, MAX_STAR, isNew } from '../srs.js?v=e54c36c9';
@@ -112,7 +112,7 @@ function renderStats(app, host, bookId, words) {
         h('div', { class: 'wr-main' }, [
           h('b', { class: 'wr-w', text: w.w, ...langAttr(bk && bk.lang) }),
           h('span', { class: 'wr-p', text: readingText(bk, w.p) }),
-          h('span', { class: 'wr-t', text: w.t }),
+          h('span', { class: 'wr-t' }, glossNodes(w.t)),
         ]),
         h('div', { class: 'wr-right' }, [
           h('span', { class: 'wr-err', text: `错 ${pr.err}` }),

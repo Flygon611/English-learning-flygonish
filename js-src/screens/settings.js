@@ -1,6 +1,6 @@
 // 设置页：音效、背景音乐、朗读、题量、模式偏好、数据。
 
-import { h, icon, speechSupported, englishVoices, say, fmtBytes } from '../util.js?v=1b053a4f';
+import { h, icon, speechSupported, englishVoices, say, fmtBytes } from '../util.js?v=8b589faf';
 import { btn, panel, toggleRow, stepper, selectRow, segmented, empty } from '../ui/kit.js?v=2f24ea8c';
 import { store } from '../core/storage.js?v=c9ee2a15';
 // 注意：**不要**从 '../app.js' 导入 —— 那会让「打开设置页」反向加载入口模块，

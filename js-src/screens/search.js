@@ -1,6 +1,6 @@
 // 查单词页：跨全部词库搜索，可看掌握度、可朗读、可直接开练。
 
-import { h, icon, say } from '../util.js?v=1b053a4f';
+import { h, icon, say, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, stars, empty, segmented } from '../ui/kit.js?v=2f24ea8c';
 import { search, buildIndex, isReady, builtCount, totalBooks, summarize } from '../search.js?v=a5b91f55';
 import { drillSession, voiceLang, readingText, speechText, langAttr } from '../session.js?v=47c6b758';
@@ -214,7 +214,7 @@ export function render(app) {
             ...r.books.map((b) => h('span', { class: 'sr-book', text: b })),
             h('span', { class: 'sr-more', text: '详情' }),
           ]),
-          h('div', { class: 'sr-t', text: w.t, ...langAttr('zh') }),
+          h('div', { class: 'sr-t', ...langAttr('zh') }, glossNodes(w.t)),
           (app.st.showExample && w.x)
             ? h('div', { class: 'sr-ex' }, [
                 h('span', { class: 'sr-x', text: w.x, ...langAttr(r.entry.lang) }),
