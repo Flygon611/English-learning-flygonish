@@ -2010,8 +2010,12 @@ b, strong { font-weight: 700; }
   font-style: italic;
   font-weight: 700;
   font-size: .92em;
-  color: #1478a8;
+  color: #0f5f86;              /* 深海蓝：白底 7.0:1，和正文同色系但一眼可分 */
   letter-spacing: .01em;
   margin-right: 1px;
 }
-.qo-text .pos, .q-word .pos, .q-word.cn .pos { color: #0f6c96; }
+.qo-text .pos, .q-word .pos, .q-word.cn .pos { color: #0c5375; }
+
+/* 答题反馈区：词性跟随反馈正文颜色（正确=绿 / 错误=红），不保留深海蓝，
+   否则「词性蓝 + 状态绿/红」同屏会打架。 */
+.q-feedback .pos { color: inherit; }
