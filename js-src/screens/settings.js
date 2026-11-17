@@ -5,7 +5,7 @@ import { btn, panel, toggleRow, stepper, selectRow, segmented, empty } from '../
 import { store } from '../core/storage.js?v=c9ee2a15';
 // 注意：**不要**从 '../app.js' 导入 —— 那会让「打开设置页」反向加载入口模块，
 // 产生第二个 App 实例并把页面覆盖回首页（见 js/settings-defaults.js 顶部注释）。
-import { DEFAULT_SETTINGS } from '../settings-defaults.js?v=bd013da3';
+import { DEFAULT_SETTINGS } from '../settings-defaults.js?v=9697a586';
 import { music } from '../music.js?v=bb44cee2';
 
 export function render(app) {
@@ -16,6 +16,27 @@ export function render(app) {
 
   function renderAll() {
     host.replaceChildren();
+
+    /* ---- 外观（日间 / 夜间 Dark Aero） ---- */
+    const themeDesc = st.theme === 'auto'
+      ? '跟随系统深色设置自动切换；日间晴空，夜间深海'
+      : (st.theme === 'dark'
+        ? '夜间 · 黑漆地面 + 烟熏玻璃 + 青色辉光，睡前背词不刺眼'
+        : '日间 · 晴空玻璃，白天光线足的时候更清爽');
+    host.append(panel([
+      h('div', { class: 'sec-title' }, [h('h2', { text: '外观' })]),
+      h('div', { class: 'row toggle-row' }, [
+        h('div', { class: 'row-main' }, [
+          h('div', { class: 'row-label' }, [icon('star', 'ico sm'), h('span', { text: '主题' })]),
+          h('div', { class: 'row-desc', text: themeDesc }),
+        ]),
+        segmented([
+          { value: 'auto', label: '自动' },
+          { value: 'light', label: '日间' },
+          { value: 'dark', label: '夜间' },
+        ], st.theme, (v) => set('theme', v)),
+      ]),
+    ], 'pad'));
 
     /* ---- 声音 ---- */
     host.append(panel([

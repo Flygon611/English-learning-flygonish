@@ -6,9 +6,10 @@ import { importProgress, exportProgress, isCorruptKey } from './srs.js?v=e54c36c
 import { h, $, dayKey, daysBetween } from './util.js?v=8b589faf';
 import { audio } from './audio.js?v=6550a8e0';
 import { music } from './music.js?v=bb44cee2';
+import { applyTheme, initTheme } from './theme.js?v=863869be';
 // 默认设置/场景常量放在叶子模块里，避免各 screen 反向 import app.js 造成循环依赖
 // （那会产生第二个 App 实例，把渲染好的页面覆盖回首页 —— 见 settings-defaults.js 注释）
-import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=bd013da3';
+import { DEFAULT_SETTINGS, STUDY_SCREENS, SCREEN_TITLES } from './settings-defaults.js?v=9697a586';
 
 // 重新导出，保持既有调用方（如 screens/settings.js 的 `from '../app.js'`）仍可用。
 // 但新代码应直接从 settings-defaults.js 取，别从这里取。
@@ -64,6 +65,10 @@ class App {
     setUserBooks(store.get('userBooks', []));
     if (!this.s.currentBook) this.s.currentBook = 'cet4';
 
+    // 主题：index.html 的内联脚本已经按 localStorage 上过一次色（防白闪），
+    // 这里按真正加载完的设置再校准一次（比如存档被恢复默认时两者会不一致）。
+    initTheme(this.st.theme);
+
     this.screenRoot = $('#screen');
 
     // 首次进入的每日打卡
@@ -84,6 +89,8 @@ class App {
         this.go(target);
       }
     });
+    // 顶部栏的日夜切换（窄屏上隐藏，去设置页切）
+    document.getElementById('btn-theme')?.addEventListener('click', () => this.toggleTheme());
 
     // 音乐：先同步用户设置，再等第一次用户手势解锁播放
     this.applyMusicVolume();
@@ -166,6 +173,7 @@ class App {
 
   setSetting(key, value) {
     this.s.settings[key] = value;
+    if (key === 'theme') { applyTheme(value); this.updateChrome(); }
     if (key === 'volume') audio.setVolume(value);
     if (key === 'sound') { audio.setMuted(!value); this.applyMusicVolume(); }
     if (key === 'music') {
@@ -175,6 +183,14 @@ class App {
     if (key === 'musicVolume') this.applyMusicVolume();
     // 设置是用户主动改动，立即落盘（改完就关页面也不会丢）
     this.saveAll();
+  }
+
+  /** 顶部栏的日夜切换按钮：在日/夜之间来回，并把偏好固定下来（不再跟随系统）。 */
+  toggleTheme() {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    this.setSetting('theme', next);
+    this.toast(next === 'dark' ? '夜间模式 · 深海夜航' : '日间模式 · 晴空', 'info', 1500);
+    return next;
   }
 
   play(name, opts) {
@@ -261,6 +277,13 @@ class App {
     document.querySelectorAll('.tab').forEach((el) => {
       el.classList.toggle('active', el.dataset.go === this.screen);
     });
+    // 日夜切换按钮：图标由 CSS 按 data-theme 画（Kenney 那套图标是白色的，
+    // 浅色底上几乎看不见），这里只维护提示文案。
+    const tbtn = document.getElementById('btn-theme');
+    if (tbtn) {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      tbtn.title = dark ? '当前：夜间模式（点击切到日间）' : '当前：日间模式（点击切到夜间）';
+    }
   }
 
   setKeyHint(text) {
@@ -357,7 +380,7 @@ const SCREENS = {
   cards: () => import('./modes/cards.js?v=b59755a7'),
   spell: () => import('./modes/spell.js?v=3d46af87'),
   stats: () => import('./screens/stats.js?v=d72d98e5'),
-  settings: () => import('./screens/settings.js?v=c335ebc7'),
+  settings: () => import('./screens/settings.js?v=d92df85c'),
   importer: () => import('./screens/importer.js?v=467080ed'),
 };
 

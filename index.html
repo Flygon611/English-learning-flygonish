@@ -3,11 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#7fc9f5">
+<meta name="theme-color" content="#d9f0ff" id="meta-theme">
 <title>单词小栈 · Word Hut</title>
-<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-11-17T16:09:39Z 生成；请勿直接编辑。
+<!-- 构建产物，由 tools/build_gh_pages.py 于 2026-11-17T16:37:37Z 生成；请勿直接编辑。
      源码在 wordgame/，改完重新运行构建脚本即可。
      本次改写了 8 处静态素材路径、注入了 window.WORDHUT_CONFIG。 -->
+<!-- 首帧上色，避免夜间模式白闪：
+     样式表解析前先按 localStorage 里的偏好把 data-theme 写到 <html>。
+     规则必须和 js/theme.js 的 resolveTheme() 一致（auto = 跟随系统）。
+     这里只读 localStorage，不依赖任何模块，所以不会拖慢首屏。 -->
+<script>
+(function () {
+  var pref = 'auto';
+  try {
+    var raw = localStorage.getItem('wh.state');
+    if (raw) {
+      var s = JSON.parse(raw);
+      if (s && s.settings && s.settings.theme) pref = s.settings.theme;
+    }
+  } catch (e) { /* 存档损坏就按 auto 走 */ }
+  var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia
+    && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  var root = document.documentElement;
+  root.dataset.theme = dark ? 'dark' : 'light';
+  root.style.colorScheme = dark ? 'dark' : 'light';
+  var meta = document.getElementById('meta-theme');
+  if (meta) meta.setAttribute('content', dark ? '#050b12' : '#d9f0ff');
+})();
+</script>
 <!-- 内联 favicon：避免浏览器请求 /favicon.ico 产生 404 -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237fc9f5'/%3E%3Ccircle cx='16' cy='13' r='7' fill='%23ffffff' opacity='.85'/%3E%3Cpath d='M4 24c4-4 8-4 12 0s8 4 12 0v8H4z' fill='%234ea83f'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./style.css">
@@ -49,6 +72,9 @@
       <span class="chip" id="chip-coins" title="金币：答题赚取"><img class="ico" src="ui/coin.png" alt=""><b id="coin-num">0</b></span>
       <button class="tb-btn tb-search" data-go="search" title="查单词：跨全部词库搜索">
         <img class="ico" src="ui/bookOpen.png" alt=""><span class="tb-label">查单词</span>
+      </button>
+      <button class="tb-btn ico-only tb-theme" id="btn-theme" title="当前：日间模式（点击切到夜间）">
+        <span class="theme-glyph" aria-hidden="true"></span>
       </button>
       <button class="tb-btn ico-only" data-go="settings" title="设置"><img class="ico" src="ui/gear.png" alt=""></button>
     </div>
@@ -119,6 +145,6 @@
 </script>
 
 <script>window.WORDHUT_CONFIG = {"vocab": "vocab/", "dict": "assets/dict/", "sfx": "audio/sfx/", "sfxMap": "audio/sfx.json", "ui": "ui/", "script": "js-src/app.js", "musicMap": "music.json", "music": "music/", "musicProject": "../assets/audio/music/", "sfxLocal": "audio/sfx-local/", "sfxLocalMap": "audio/sfx.local.json"};</script>
-<script type="module" src="./js-src/app.js?v=2409978d"></script>
+<script type="module" src="./js-src/app.js?v=3454905e"></script>
 </body>
 </html>

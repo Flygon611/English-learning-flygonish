@@ -12,6 +12,7 @@
 // app.js 不再被任何 screen 导入，循环依赖消失。
 
 export const DEFAULT_SETTINGS = {
+  theme: 'auto',        // 'auto' 跟随系统 | 'light' 日间 | 'dark' 夜间（Dark Aero）
   sound: true,
   volume: 0.7,
   music: true,          // 主界面背景音乐

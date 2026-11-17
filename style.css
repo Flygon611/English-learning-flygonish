@@ -306,7 +306,9 @@ b, strong { font-weight: 700; }
   image-rendering: crisp-edges;
   flex: none;
   vertical-align: -3px;
-  filter: drop-shadow(0 1px 1px rgba(11, 43, 62, .28));
+  /* Kenney 这套 UI 图标是纯白的（本来是给深色界面设计的），浅色玻璃上只能靠描边读出来，
+     所以阴影比一般的「浮起感」要重一点；夜间模式另有一套更强的冷光描边（见夜间段）。 */
+  filter: drop-shadow(0 1px 1px rgba(11, 43, 62, .45)) drop-shadow(0 0 .5px rgba(11, 43, 62, .35));
 }
 .ico.xs { width: 14px; height: 14px; }
 .ico.sm { width: 16px; height: 16px; }
@@ -388,6 +390,23 @@ b, strong { font-weight: 700; }
 .tb-btn:active { transform: translateY(1px) scale(.97); }
 .tb-btn.ico-only { padding: 6px 9px; }
 
+/* 日夜切换图标：Kenney 这套 UI 图标是纯白的（本来就是给深色界面设计的），
+   浅色玻璃上几乎看不见 —— 这个按钮两个主题都要能认出来，所以用 CSS 画：
+   日间显示月牙（点它进入夜间），夜间显示太阳（点它回到日间）。 */
+.theme-glyph { position: relative; width: 18px; height: 18px; display: block; }
+.theme-glyph::before {
+  content: '';
+  position: absolute; inset: 2px;
+  border-radius: 50%;
+  /* 月牙：圆形内阴影偏移，挖出弯月 */
+  box-shadow: inset -4px 1px 0 0 #2f5169;
+}
+html[data-theme="dark"] .theme-glyph::before {
+  inset: 6px;
+  background: #ffc46e;
+  box-shadow: 0 0 0 3px rgba(255, 196, 110, .50), 0 0 10px rgba(255, 196, 110, .45);
+}
+
 /* 「查单词」入口：这是全站唯一一个「不点进去就不知道存在」的功能，
    原来只有一个卷轴图标、还和旁边的设置按钮长得一模一样（用户反馈：不明显）。
    现在换成翻开的书本（词典意象）+ 文字标签 + 强调配色，一眼能认出来。
@@ -404,6 +423,11 @@ b, strong { font-weight: 700; }
 @media (max-width: 379px) {
   .tb-btn.tb-search .tb-label { display: none; }
   .tb-btn.tb-search { padding: 6px 9px; }
+}
+
+/* 窄屏顶部栏已经排满四件东西，日夜切换收进设置页（那里有完整的三档选择） */
+@media (max-width: 560px) {
+  .tb-theme { display: none; }
 }
 
 .chip {
@@ -1621,7 +1645,7 @@ b, strong { font-weight: 700; }
   font-size: 12px;
   cursor: pointer;
 }
-.etym-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.etym-toggle:hover { border-color: var(--aqua); color: var(--aqua); }
 .dict-src { margin-top: 16px; font-size: 11.5px; }
 .dict-actions { display: flex; gap: 9px; margin-top: 14px; flex-wrap: wrap; }
 .small { font-size: 12.5px; }
@@ -2019,3 +2043,736 @@ b, strong { font-weight: 700; }
 /* 答题反馈区：词性跟随反馈正文颜色（正确=绿 / 错误=红），不保留深海蓝，
    否则「词性蓝 + 状态绿/红」同屏会打架。 */
 .q-feedback .pos { color: inherit; }
+/* 选项落定成绿色/红色后同理：深蓝或浅青压在亮绿底上都会糊，跟随选项自身文字色 */
+.q-opt.right .pos, .q-opt.wrong .pos { color: inherit; }
+
+/* ============================ 夜间模式（Dark Aero） ============================
+   Frutiger Aero 有个夜间支流（Dark Aero / 2010 前后的 Vista·7 暗色）：
+   玻璃、光泽、泡泡、倒影这套材质语言不变，只是把「白天的天光」换成「月光」。
+   所以这里不是反色，而是重新打光：
+
+     · 地面：夜空（近黑）→ 月光带（青）→ 深海，保留原来「天空 → 水面」的构图；
+     · 玻璃：烟熏玻璃，边缘光由白转青（白边在暗底上会像塑料反光，不对）；
+     · 文字：三档灰蓝全部提亮到暗底上仍然 ≥4.5:1；
+     · 高光：所有 inset 白色高光从 .9 降到 .1~.2，只留一道冷光边。
+
+   结构：先覆盖 :root 变量（能覆盖掉大部分组件），再逐块校准那些把白色
+   写死的亮面（按钮、题目卡、翻卡正面、结算页……）。选择器统一带
+   html[data-theme="dark"] 前缀，特异性比文件前面的规则高一级，
+   因此能压住包括媒体查询在内的所有旧规则，不必回头改动日间部分。 */
+
+html[data-theme="dark"] {
+  /* 原生控件 / 滚动条走深色 */
+  color-scheme: dark;
+
+  /* ---- 地面：夜空 → 月光带 → 深海 ---- */
+  --sky-1: #050b12;
+  --sky-2: #07141d;
+  --sky-3: #0a2230;
+  --water-1: #0b2c3f;
+  --water-2: #061620;
+
+  /* ---- 烟熏玻璃 ---- */
+  --glass: rgba(10, 33, 46, .62);
+  --glass-strong: rgba(13, 42, 58, .86);
+  --glass-weak: rgba(12, 38, 52, .38);
+  --glass-edge: rgba(110, 205, 240, .26);
+  --glass-line: rgba(110, 205, 240, .18);
+  --glass-shade: rgba(0, 0, 0, .30);
+
+  /* ---- 文字 ---- */
+  --text: #e4f4fd;          /* 暗底 14.8:1 */
+  --text-2: #b4d3e4;        /* 暗底 9.0:1 —— 正文/说明 */
+  --text-3: #8fb0c2;        /* 暗底 6.9:1 —— 最小字号注记 */
+  --text-on-sky: #e4f4fd;
+
+  /* ---- 状态色：在暗底上要提亮一档，否则绿/红会发脏 ---- */
+  --ok: #35c98a;
+  --ok-2: #8ff0c0;
+  --ok-text: #7fe8b0;
+  --warn: #ffb454;
+  --bad: #ff6b85;
+  --bad-2: #ffa3b3;
+  --bad-text: #ff9aac;
+  --gold: #ffc24d;
+  --gold-2: #ffe19a;
+  --amber: #ffb454;
+  --amber-d: #d9942b;
+  --amber-text: #ffc46e;
+  --aqua: #43d3f7;
+
+  /* ---- 阴影：外阴影转黑，内高光转冷光 ---- */
+  --sh-sm: 0 2px 8px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(180, 240, 255, .14);
+  --sh: 0 6px 20px rgba(0, 0, 0, .50), inset 0 1px 0 rgba(180, 240, 255, .16);
+  --sh-lg: 0 14px 44px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(180, 240, 255, .18);
+  --sh-gloss: 0 8px 26px rgba(0, 0, 0, .45);
+}
+
+/* ---------- 环境光：月光 + 水下辉光（原来的白光是「太阳」） ---------- */
+html[data-theme="dark"] body::before {
+  opacity: .42;
+  background:
+    radial-gradient(60% 42% at 22% 100%, rgba(86, 224, 255, .30), transparent 70%),
+    radial-gradient(48% 34% at 74% 104%, rgba(60, 180, 235, .26), transparent 72%),
+    radial-gradient(70% 30% at 50% 116%, rgba(40, 140, 200, .22), transparent 76%);
+}
+html[data-theme="dark"] body::after {
+  opacity: .80;
+  background: radial-gradient(closest-side,
+    rgba(170, 235, 255, .22), rgba(70, 150, 220, .12) 46%, transparent 72%);
+}
+html[data-theme="dark"] .aero-bubbles i {
+  background: radial-gradient(circle at 32% 28%,
+    rgba(200, 250, 255, .70), rgba(70, 190, 235, .10) 42%,
+    rgba(60, 190, 240, .34) 92%, rgba(120, 230, 255, .55) 100%);
+  box-shadow:
+    inset 0 0 14px rgba(150, 235, 255, .55),
+    0 0 26px rgba(70, 190, 240, .40),
+    0 0 2px rgba(220, 250, 255, .60);
+}
+html[data-theme="dark"] .ico {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .55)) drop-shadow(0 0 6px rgba(80, 190, 240, .18));
+}
+html[data-theme="dark"] :focus-visible { outline-color: #67d9ff; }
+
+/* ---------- 启动画面 ---------- */
+html[data-theme="dark"] .boot-logo {
+  color: #eefaff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .45), 0 6px 20px rgba(0, 0, 0, .55);
+}
+html[data-theme="dark"] .boot-logo span {
+  background: linear-gradient(180deg, #ffffff, #bff0ff 55%, #5fc8f0);
+}
+html[data-theme="dark"] .boot-bar {
+  background: rgba(255, 255, 255, .10);
+  border-color: rgba(150, 225, 255, .28);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] .boot-bar > i {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 0 14px rgba(80, 230, 160, .55);
+}
+
+/* ---------- 外壳 ---------- */
+html[data-theme="dark"] .topbar {
+  background: linear-gradient(180deg, rgba(5, 16, 24, .92) 55%, rgba(5, 16, 24, 0));
+}
+html[data-theme="dark"] .tb-title { text-shadow: 0 1px 0 rgba(0, 0, 0, .55); }
+html[data-theme="dark"] .tb-btn.tb-search {
+  background: linear-gradient(180deg,
+    rgba(42, 124, 160, .85) 0%, rgba(22, 82, 112, .90) 52%,
+    rgba(18, 68, 94, .90) 52%, rgba(26, 102, 136, .90) 100%);
+  border-color: rgba(120, 215, 250, .45);
+  color: #cdefff;
+}
+html[data-theme="dark"] .tb-btn.tb-search:hover {
+  color: #f0fbff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(190, 240, 255, .40);
+}
+html[data-theme="dark"] .bottombar {
+  background: linear-gradient(0deg, rgba(5, 16, 24, .92) 60%, rgba(5, 16, 24, 0));
+}
+html[data-theme="dark"] .tab:hover { background: rgba(120, 215, 250, .10); }
+html[data-theme="dark"] .tab.active {
+  background: linear-gradient(180deg, #2f8fbd 0%, #17648c 50%, #114c6b 51%, #0b3a54 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 6px 16px rgba(0, 0, 0, .50),
+    0 0 18px rgba(60, 180, 230, .35);
+}
+html[data-theme="dark"] .hint { text-shadow: 0 1px 0 rgba(0, 0, 0, .60); }
+
+/* ---------- 按钮 ---------- */
+html[data-theme="dark"] .btn {
+  background: linear-gradient(180deg, #1c4359 0%, #143447 46%, #102b3c 54%, #0c2230 100%);
+  border-color: rgba(120, 215, 250, .30);
+  color: var(--text);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(190, 240, 255, .22);
+}
+/* 上半部高光条：暗色下只能是一道冷光，不能是白炽 */
+html[data-theme="dark"] .btn::before {
+  background: linear-gradient(180deg, rgba(200, 245, 255, .30), rgba(200, 245, 255, .02));
+}
+html[data-theme="dark"] .btn:hover:not(:disabled) {
+  box-shadow: 0 9px 24px rgba(0, 0, 0, .50), inset 0 1px 0 rgba(200, 245, 255, .30);
+}
+html[data-theme="dark"] .btn:active:not(:disabled) {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .40), inset 0 1px 0 rgba(200, 245, 255, .25);
+}
+html[data-theme="dark"] .btn.ghost {
+  border-color: rgba(120, 215, 250, .35);
+  box-shadow: inset 0 1px 0 rgba(190, 240, 255, .14);
+}
+/* 状态样式要在通用 .btn 之后再声明一次：
+   上面的 html[data-theme="dark"] .btn 特异性 (0,2,1)，会盖掉 .btn.primary (0,1,1)
+   这类状态规则，所以凝胶按钮的原色必须原样补回来，否则主按钮会变成一块灰玻璃。 */
+html[data-theme="dark"] .btn.primary {
+  background: linear-gradient(to bottom,
+    #7fd4f5 0%, #17759f 50%, #0d4d6c 50%, #1177a3 100%);
+  border-color: rgba(9, 62, 90, .90);
+  color: #fff;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, .45);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .95),
+    inset 0 15px 15px rgba(255, 255, 255, .32),
+    0 5px 12px rgba(0, 0, 0, .50),
+    0 0 20px rgba(30, 150, 200, .22);
+}
+html[data-theme="dark"] .btn.danger {
+  background: linear-gradient(to bottom,
+    #ffc2cb 0%, #e4576f 50%, #a82b45 50%, #d1475f 100%);
+  border-color: #7d1f32;
+  color: #fff;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, .45);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .90),
+    inset 0 15px 15px rgba(255, 255, 255, .30),
+    0 5px 12px rgba(0, 0, 0, .50);
+}
+
+/* ---------- 面板 ---------- */
+html[data-theme="dark"] .panel {
+  background: linear-gradient(180deg, rgba(18, 52, 72, .74), rgba(10, 33, 46, .62));
+}
+html[data-theme="dark"] .panel::before {
+  background: linear-gradient(180deg, rgba(190, 240, 255, .12), rgba(190, 240, 255, 0) 40%);
+}
+html[data-theme="dark"] .sec-title h2 { text-shadow: 0 1px 0 rgba(0, 0, 0, .50); }
+
+/* ---------- 首页 ---------- */
+/* 原来那张「天空 + 草地」壁纸在夜里的样子：深蓝夜空、月光、暗绿地面 */
+html[data-theme="dark"] .hero {
+  background:
+    radial-gradient(120% 90% at 88% 10%, rgba(200, 245, 255, .55), transparent 52%),
+    radial-gradient(80% 50% at 10% 96%, rgba(60, 200, 190, .18), transparent 70%),
+    linear-gradient(180deg, #0a2b45 0%, #0d4a6b 42%, #0e5560 58%, #0a2e2a 100%);
+  border-color: rgba(120, 215, 250, .30);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(190, 240, 255, .28);
+}
+html[data-theme="dark"] .hero::after {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .18), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .hero-text h1 {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .50), 0 3px 12px rgba(0, 0, 0, .50);
+}
+html[data-theme="dark"] .hero-text p { color: #bfe6f2; }
+html[data-theme="dark"] .hero-emoji {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .18), rgba(190, 245, 255, .05));
+  border-color: rgba(190, 245, 255, .30);
+  box-shadow: inset 0 1px 0 rgba(220, 250, 255, .25), 0 6px 16px rgba(0, 0, 0, .40);
+}
+html[data-theme="dark"] .mode-card {
+  background: linear-gradient(180deg, rgba(20, 56, 78, .80), rgba(10, 34, 48, .62));
+}
+html[data-theme="dark"] .mode-card::after {
+  background: linear-gradient(100deg, transparent, rgba(190, 245, 255, .22), transparent);
+}
+html[data-theme="dark"] .mode-card:hover {
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(200, 245, 255, .22);
+}
+html[data-theme="dark"] .mc-ico {
+  background: linear-gradient(180deg, #1a4a63, #10303f);
+  border-color: rgba(150, 230, 255, .30);
+  box-shadow: inset 0 1px 0 rgba(200, 245, 255, .20), 0 4px 10px rgba(0, 0, 0, .35);
+}
+html[data-theme="dark"] .stat {
+  background: linear-gradient(180deg, rgba(22, 60, 84, .90), rgba(10, 34, 48, .60));
+}
+html[data-theme="dark"] .stat::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .16), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .stat.k-fire .stat-val { color: #ff9f5a; }
+html[data-theme="dark"] .stat.k-target .stat-val { color: #6fd3f7; }
+html[data-theme="dark"] .recent-row {
+  background: rgba(120, 215, 250, .07);
+  border-color: rgba(120, 215, 250, .14);
+}
+html[data-theme="dark"] .recent-row:hover { background: rgba(120, 215, 250, .13); }
+
+/* ---------- 词库页 ---------- */
+html[data-theme="dark"] .bg-label { color: #8fe0ff; }
+html[data-theme="dark"] .book-card {
+  background: linear-gradient(180deg, rgba(20, 56, 78, .82), rgba(10, 34, 48, .60));
+}
+html[data-theme="dark"] .book-card:hover {
+  border-color: rgba(150, 230, 255, .50);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .55);
+}
+html[data-theme="dark"] .book-card.active {
+  background: linear-gradient(180deg, rgba(30, 96, 130, .95), rgba(12, 44, 62, .95));
+  box-shadow: 0 0 0 2px rgba(67, 211, 247, .80), 0 12px 28px rgba(0, 0, 0, .50),
+    0 0 26px rgba(67, 211, 247, .22);
+}
+html[data-theme="dark"] .lt-btn {
+  background: linear-gradient(180deg, rgba(22, 60, 84, .90), rgba(10, 34, 48, .60));
+}
+html[data-theme="dark"] .lt-btn:hover { box-shadow: 0 10px 22px rgba(0, 0, 0, .50); }
+html[data-theme="dark"] .lt-btn.active {
+  background: linear-gradient(180deg, #4bb4e6 0%, #2b95cc 46%, #1470a3 54%, #0e5478 100%);
+  border-color: rgba(150, 230, 255, .45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 8px 18px rgba(0, 0, 0, .50),
+    0 0 16px rgba(67, 211, 247, .30);
+}
+/* 「全部」那格是琥珀色，别被上面的 .lt-btn.active 盖成蓝的 */
+html[data-theme="dark"] .lt-btn.all.active {
+  background: linear-gradient(180deg, #ffe08a 0%, #f5bb43 46%, #e8a01c 54%, #b87a08 100%);
+  border-color: rgba(255, 235, 180, .55);
+  color: #4a2c00;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 8px 18px rgba(0, 0, 0, .50),
+    0 0 16px rgba(245, 187, 67, .30);
+}
+html[data-theme="dark"] .lt-bar { background: rgba(255, 255, 255, .12); }
+html[data-theme="dark"] .selection-bar {
+  background: linear-gradient(180deg, rgba(16, 50, 70, .92), rgba(9, 30, 42, .78));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .22);
+}
+
+/* ---------- 进度条 ---------- */
+html[data-theme="dark"] .pbar {
+  background: linear-gradient(180deg, rgba(67, 211, 247, .22), rgba(67, 211, 247, .10));
+  border-color: rgba(120, 215, 250, .18);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] .pbar > i {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 0 10px rgba(60, 220, 140, .25);
+}
+html[data-theme="dark"] .pbar > i::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35));
+}
+
+/* ---------- 芯片 / 分段 / 开关 ---------- */
+html[data-theme="dark"] .chip-btn {
+  background: linear-gradient(180deg, rgba(120, 215, 250, .16), rgba(120, 215, 250, .07));
+  border-color: rgba(120, 215, 250, .24);
+}
+html[data-theme="dark"] .chip-btn.active {
+  background: linear-gradient(180deg, #4bb4e6, #2b95cc);
+  border-color: rgba(160, 240, 255, .55);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(67, 211, 247, .30), inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+html[data-theme="dark"] .segmented {
+  background: rgba(0, 0, 0, .35);
+  border-color: rgba(120, 215, 250, .20);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .50);
+}
+html[data-theme="dark"] .seg.active {
+  background: linear-gradient(180deg, #1e5878, #123c52);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(190, 240, 255, .25);
+}
+html[data-theme="dark"] .row { border-bottom-color: rgba(120, 215, 250, .14); }
+html[data-theme="dark"] .switch {
+  background: linear-gradient(180deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .28));
+  border-color: rgba(120, 215, 250, .20);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .50);
+}
+html[data-theme="dark"] .switch > i {
+  background: radial-gradient(circle at 34% 28%, #eaf9ff, #a9cfe0 60%, #6f97ab);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .50), inset 0 1px 0 #fff;
+}
+/* 开关「开」的绿色轨道同样被通用规则盖掉了，补回来（并加一点水阀的辉光） */
+html[data-theme="dark"] .switch.on {
+  background: linear-gradient(180deg, #7fd8a2 0%, #2fae57 50%, #1d7f3e 100%);
+  border-color: rgba(160, 255, 200, .35);
+  box-shadow: inset 0 2px 5px rgba(6, 60, 30, .50), 0 0 14px rgba(60, 220, 150, .30);
+}
+html[data-theme="dark"] .stepper {
+  background: rgba(0, 0, 0, .35);
+  border-color: rgba(120, 215, 250, .20);
+}
+html[data-theme="dark"] .st-btn:hover { background: rgba(120, 215, 250, .14); }
+html[data-theme="dark"] .select {
+  background: linear-gradient(180deg, #113143, #0a2230);
+  border-color: rgba(120, 215, 250, .28);
+}
+html[data-theme="dark"] .text-input,
+html[data-theme="dark"] .import-text,
+html[data-theme="dark"] .spell-input {
+  background: linear-gradient(180deg, rgba(10, 30, 42, .96), rgba(6, 20, 30, .90));
+  border-color: rgba(120, 215, 250, .22);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] .text-input:focus,
+html[data-theme="dark"] .import-text:focus,
+html[data-theme="dark"] .spell-input:focus {
+  border-color: var(--aqua);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .40), 0 0 0 4px rgba(67, 211, 247, .22);
+}
+/* 音量滑杆：Edge 在 color-scheme:dark 下会给轨道刷成褐色，
+   和整套青色系完全不搭，所以自己画轨道和滑块。 */
+html[data-theme="dark"] .range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(67, 211, 247, .20), rgba(67, 211, 247, .08));
+  border: 1px solid rgba(120, 215, 250, .18);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] .range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffffff, #bfe9ff 55%, #43d3f7);
+  border: 1px solid rgba(255, 255, 255, .55);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .55), 0 0 10px rgba(67, 211, 247, .35);
+}
+html[data-theme="dark"] .range::-moz-range-track {
+  height: 8px; border-radius: 999px;
+  background: rgba(67, 211, 247, .16);
+}
+html[data-theme="dark"] .range::-moz-range-thumb {
+  width: 16px; height: 16px; border: 1px solid rgba(255, 255, 255, .55); border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffffff, #bfe9ff 55%, #43d3f7);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .55);
+}
+/* 输入框占位符：Edge 在 color-scheme:dark 下默认给的是偏褐的灰，和青色系不搭 */
+html[data-theme="dark"] .text-input::placeholder,
+html[data-theme="dark"] .import-text::placeholder,
+html[data-theme="dark"] .spell-input::placeholder {
+  color: rgba(178, 208, 224, .62);
+}
+
+/* ---------- 统计页 ---------- */
+html[data-theme="dark"] .mastery-block {
+  background: linear-gradient(180deg, rgba(20, 56, 78, .80), rgba(10, 34, 48, .60));
+}
+html[data-theme="dark"] .sd-col > u {
+  background: linear-gradient(180deg, rgba(67, 211, 247, .22), rgba(67, 211, 247, .08));
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .40);
+}
+html[data-theme="dark"] .lt-head { background: rgba(120, 215, 250, .10); }
+html[data-theme="dark"] .lt-row {
+  background: rgba(120, 215, 250, .05);
+  border-top-color: rgba(120, 215, 250, .12);
+}
+html[data-theme="dark"] .lt-row:hover { background: rgba(120, 215, 250, .12); }
+html[data-theme="dark"] .lt-l { color: #6fd3f7; }
+html[data-theme="dark"] .wrong-row {
+  background: linear-gradient(180deg, rgba(255, 107, 133, .16), rgba(255, 107, 133, .06));
+}
+html[data-theme="dark"] .cc {
+  background: rgba(120, 215, 250, .12);
+  border-color: rgba(120, 215, 250, .22);
+}
+html[data-theme="dark"] .cc.r0 { background: rgba(255, 107, 133, .18); color: #ffa3b3; }
+html[data-theme="dark"] .cc.r1 { background: rgba(255, 180, 84, .18); color: #ffc46e; }
+html[data-theme="dark"] .cc.r2 { background: rgba(67, 211, 247, .18); color: #7fd8ff; }
+html[data-theme="dark"] .cc.r3 { background: rgba(53, 201, 138, .18); color: #8ff0c0; }
+
+/* ---------- 导入页 ---------- */
+html[data-theme="dark"] .lm-chip {
+  background: linear-gradient(180deg, rgba(120, 215, 250, .12), rgba(120, 215, 250, .05));
+}
+html[data-theme="dark"] .lm-chip b { color: #6fd3f7; }
+html[data-theme="dark"] .ir-row { background: rgba(120, 215, 250, .06); }
+html[data-theme="dark"] .warn-box {
+  background: linear-gradient(180deg, rgba(255, 180, 84, .18), rgba(255, 180, 84, .07));
+  border-color: rgba(255, 180, 84, .40);
+}
+html[data-theme="dark"] .warn-box summary { color: #ffc46e; }
+html[data-theme="dark"] .code-block { border-color: rgba(120, 215, 250, .20); }
+
+/* ---------- 四种玩法 ---------- */
+html[data-theme="dark"] .quiz-hud,
+html[data-theme="dark"] .cards-hud,
+html[data-theme="dark"] .spell-hud {
+  background: linear-gradient(180deg, rgba(20, 56, 78, .86), rgba(10, 34, 48, .66));
+}
+html[data-theme="dark"] .qh-level { color: #7fd8ff; }
+html[data-theme="dark"] .qt-bar {
+  background: linear-gradient(180deg, rgba(67, 211, 247, .24), rgba(67, 211, 247, .12));
+  border-color: rgba(120, 215, 250, .18);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] .qcard {
+  background: linear-gradient(180deg, rgba(20, 58, 82, .88), rgba(9, 32, 46, .70));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .qcard::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .07), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .q-word > b {
+  color: #eafaff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .55), 0 3px 16px rgba(60, 190, 240, .35);
+}
+html[data-theme="dark"] .q-listen-word { color: #eafaff; }
+html[data-theme="dark"] .listen-btn {
+  border-color: rgba(150, 230, 255, .45);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .50),
+    0 0 26px rgba(60, 190, 240, .35);
+}
+html[data-theme="dark"] .listen-btn::after { border-color: rgba(150, 230, 255, .45); }
+html[data-theme="dark"] .speak-btn {
+  background: linear-gradient(180deg, #1a4a63, #0e2c3d);
+  border-color: rgba(120, 215, 250, .30);
+}
+html[data-theme="dark"] .q-opt {
+  background: linear-gradient(180deg, rgba(22, 62, 86, .90), rgba(10, 34, 48, .66));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .50), inset 0 1px 0 rgba(190, 240, 255, .16);
+}
+html[data-theme="dark"] .q-opt::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .12), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .q-opt:hover:not(:disabled) {
+  border-color: rgba(150, 230, 255, .55);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(200, 245, 255, .20),
+    0 0 20px rgba(67, 211, 247, .18);
+}
+html[data-theme="dark"] .qo-key {
+  background: linear-gradient(180deg, #1c4c66, #0f2e3f);
+  border-color: rgba(150, 230, 255, .28);
+}
+/* 对/错状态：沿用日间的果冻配色（本身就是亮面，放在暗底上反而醒目），
+   只把外发光换成暗色投影，避免亮色块把整页照花。 */
+html[data-theme="dark"] .q-opt.right {
+  background: linear-gradient(180deg, #c9f7d9 0%, #6fdc9b 46%, #2fae57 54%, #1d7f3e 100%);
+  border-color: rgba(200, 255, 225, .55);
+  color: #06381d;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45), 0 0 26px rgba(60, 230, 150, .28);
+}
+html[data-theme="dark"] .q-opt.wrong {
+  background: linear-gradient(180deg, #ffc9d2 0%, #f4718a 46%, #e05070 54%, #bd3352 100%);
+  border-color: rgba(255, 210, 220, .50);
+  color: #49061a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45), 0 0 26px rgba(255, 90, 120, .28);
+}
+html[data-theme="dark"] .q-opt.dim { opacity: .40; }
+html[data-theme="dark"] .q-feedback.ok {
+  background: linear-gradient(180deg, rgba(35, 120, 80, .55), rgba(12, 40, 34, .60));
+  border-color: rgba(60, 220, 150, .45);
+}
+html[data-theme="dark"] .q-feedback.bad {
+  background: linear-gradient(180deg, rgba(140, 45, 62, .55), rgba(40, 18, 26, .60));
+  border-color: rgba(255, 107, 133, .45);
+}
+html[data-theme="dark"] .q-feedback.ok .fb-head > b { color: #8ff0c0; }
+html[data-theme="dark"] .q-feedback.bad .fb-head > b { color: #ffa3b3; }
+html[data-theme="dark"] .fb-w { color: #eafaff; }
+html[data-theme="dark"] .fb-ex { border-left-color: rgba(120, 215, 250, .30); }
+html[data-theme="dark"] .quiz-intro {
+  background: linear-gradient(180deg, rgba(20, 58, 82, .88), rgba(9, 32, 46, .70));
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .quiz-intro::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .10), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .qi-badge {
+  background: linear-gradient(180deg, #1a4a63, #0e2c3d);
+  border-color: rgba(120, 215, 250, .30);
+  color: #8fe0ff;
+}
+html[data-theme="dark"] .qi-name {
+  color: #e8f9ff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .50), 0 6px 20px rgba(0, 0, 0, .50);
+}
+html[data-theme="dark"] .qi-fact {
+  background: linear-gradient(180deg, rgba(120, 215, 250, .12), rgba(120, 215, 250, .04));
+}
+html[data-theme="dark"] .quiz-levelup h1 {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .50), 0 6px 18px rgba(0, 0, 0, .50);
+}
+
+/* ---------- 翻卡记忆 ---------- */
+/* 正面 = 夜空 + 暗绿地面；背面 = 夜里的湖面。构图与日间一致，只换光。 */
+html[data-theme="dark"] .card-face {
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .18);
+}
+html[data-theme="dark"] .card-front {
+  background:
+    radial-gradient(90% 70% at 80% 8%, rgba(190, 245, 255, .35), transparent 60%),
+    linear-gradient(180deg, #0b2b45 0%, #0d4667 46%, #0f5a5f 60%, #0a3029 100%);
+}
+html[data-theme="dark"] .card-back {
+  background:
+    radial-gradient(90% 70% at 20% 6%, rgba(190, 245, 255, .30), transparent 60%),
+    linear-gradient(180deg, #08243a 0%, #0b3a56 40%, #0d4d66 100%);
+}
+html[data-theme="dark"] .cf-badge { color: rgba(214, 244, 255, .78); }
+html[data-theme="dark"] .cf-word {
+  color: #f2fcff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .50), 0 6px 22px rgba(0, 0, 0, .55);
+}
+html[data-theme="dark"] .cf-hint { color: rgba(226, 248, 255, .82); }
+html[data-theme="dark"] .cb-word > b { color: #f2fcff; }
+html[data-theme="dark"] .cb-phon { color: rgba(214, 244, 255, .70); }
+html[data-theme="dark"] .cf-meaning { color: #e6f8ff; }
+html[data-theme="dark"] .cf-ex { border-top-color: rgba(214, 244, 255, .20); }
+html[data-theme="dark"] .cf-x { color: #bfe3f2; }
+html[data-theme="dark"] .cf-xm { color: #a8ccdd; }
+html[data-theme="dark"] .rate-btn {
+  background: linear-gradient(180deg, rgba(22, 62, 86, .90), rgba(10, 34, 48, .66));
+}
+html[data-theme="dark"] .rate-btn::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .12), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .rate-btn:hover:not(:disabled) { box-shadow: 0 12px 28px rgba(0, 0, 0, .55); }
+html[data-theme="dark"] .rate-btn.r0:hover:not(:disabled) { background: linear-gradient(180deg, rgba(255, 107, 133, .22), rgba(10, 34, 48, .90)); }
+html[data-theme="dark"] .rate-btn.r1:hover:not(:disabled) { background: linear-gradient(180deg, rgba(255, 180, 84, .22), rgba(10, 34, 48, .90)); }
+html[data-theme="dark"] .rate-btn.r2:hover:not(:disabled) { background: linear-gradient(180deg, rgba(67, 211, 247, .22), rgba(10, 34, 48, .90)); }
+html[data-theme="dark"] .rate-btn.r3:hover:not(:disabled) { background: linear-gradient(180deg, rgba(53, 201, 138, .22), rgba(10, 34, 48, .90)); }
+html[data-theme="dark"] .tr-cell { border-color: rgba(120, 215, 250, .24); }
+html[data-theme="dark"] .tr-cell.r0 { background: linear-gradient(180deg, rgba(255, 107, 133, .22), rgba(12, 32, 44, .90)); color: #ffa3b3; }
+html[data-theme="dark"] .tr-cell.r1 { background: linear-gradient(180deg, rgba(255, 180, 84, .22), rgba(12, 32, 44, .90)); color: #ffc46e; }
+html[data-theme="dark"] .tr-cell.r2 { background: linear-gradient(180deg, rgba(67, 211, 247, .22), rgba(12, 32, 44, .90)); color: #7fd8ff; }
+html[data-theme="dark"] .tr-cell.r3 { background: linear-gradient(180deg, rgba(53, 201, 138, .22), rgba(12, 32, 44, .90)); color: #8ff0c0; }
+
+/* ---------- 拼写填空 ---------- */
+html[data-theme="dark"] .spell-card {
+  background: linear-gradient(180deg, rgba(20, 58, 82, .88), rgba(9, 32, 46, .70));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .spell-card::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .07), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .sc-meaning { color: #eafaff; }
+html[data-theme="dark"] .slot { border-bottom-color: rgba(214, 244, 255, .45); }
+html[data-theme="dark"] .answer-box.letters .typed-letters {
+  background: linear-gradient(180deg, rgba(10, 30, 42, .95), rgba(6, 20, 30, .85));
+  border-color: rgba(120, 215, 250, .22);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] .tk {
+  background: linear-gradient(180deg, #1a4a63, #0e2c3d);
+  border-color: rgba(120, 215, 250, .28);
+}
+html[data-theme="dark"] .bank-key {
+  background: linear-gradient(180deg, #1c4359 0%, #143447 46%, #102b3c 54%, #0c2230 100%);
+  border-color: rgba(120, 215, 250, .30);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(200, 245, 255, .20);
+}
+html[data-theme="dark"] .sf-box.ok {
+  background: linear-gradient(180deg, rgba(35, 120, 80, .55), rgba(12, 40, 34, .60));
+  border-color: rgba(60, 220, 150, .45);
+}
+html[data-theme="dark"] .sf-box.bad {
+  background: linear-gradient(180deg, rgba(140, 45, 62, .55), rgba(40, 18, 26, .60));
+  border-color: rgba(255, 107, 133, .45);
+}
+html[data-theme="dark"] .sf-box.ok .sf-head > b { color: #8ff0c0; }
+html[data-theme="dark"] .sf-box.bad .sf-head > b { color: #ffa3b3; }
+html[data-theme="dark"] .sf-word > b { color: #eafaff; }
+html[data-theme="dark"] .sf-answer > b { color: #8ff0c0; }
+html[data-theme="dark"] .dc {
+  background: rgba(120, 215, 250, .12);
+  border-color: rgba(120, 215, 250, .20);
+}
+html[data-theme="dark"] .dc.ok { color: #8ff0c0; background: rgba(53, 201, 138, .18); }
+html[data-theme="dark"] .dc.wrong { color: #fff; }
+html[data-theme="dark"] .dc.miss { background: rgba(67, 211, 247, .22); color: #7fd8ff; }
+html[data-theme="dark"] .dc.extra { background: rgba(255, 180, 84, .22); color: #ffc46e; }
+
+/* ---------- 词条详情页 ---------- */
+html[data-theme="dark"] .dh-w { color: #eafaff; }
+html[data-theme="dark"] .dict-tag {
+  background: linear-gradient(180deg, #1a4a63, #0e2c3d);
+  border-color: rgba(120, 215, 250, .35);
+  color: #9fe6ff;
+}
+html[data-theme="dark"] .se-pos { color: #9fe6ff; background: rgba(67, 211, 247, .16); }
+html[data-theme="dark"] .se-x { color: #bfe3f2; }
+html[data-theme="dark"] .syn-chip {
+  background: linear-gradient(180deg, #1a4a63, #0e2c3d);
+  border-color: rgba(120, 215, 250, .35);
+  color: #9fe6ff;
+}
+html[data-theme="dark"] .af-key { color: #eafaff; }
+html[data-theme="dark"] .af-link { color: #7fd8ff; }
+html[data-theme="dark"] .af-link:hover { color: #bfefff; }
+html[data-theme="dark"] .sr-more {
+  color: #9fe6ff;
+  border-color: rgba(120, 215, 250, .35);
+  background: rgba(120, 215, 250, .12);
+}
+html[data-theme="dark"] .lic-link { color: #7fd8ff; }
+html[data-theme="dark"] .lic-link:hover { color: #bfefff; }
+
+/* ---------- 查单词页 ---------- */
+html[data-theme="dark"] .search-row {
+  background: rgba(120, 215, 250, .07);
+  border-color: rgba(120, 215, 250, .14);
+}
+html[data-theme="dark"] .search-row:hover { background: rgba(120, 215, 250, .14); }
+html[data-theme="dark"] .sr-w { color: #eafaff; }
+html[data-theme="dark"] .sr-book {
+  color: #9fe6ff;
+  background: rgba(67, 211, 247, .14);
+  border-color: rgba(67, 211, 247, .30);
+}
+
+/* ---------- 结算 ---------- */
+html[data-theme="dark"] .result-hero {
+  background: linear-gradient(180deg, rgba(20, 58, 82, .90), rgba(9, 32, 46, .72));
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .result-hero::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .10), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .result-hero h1 { color: #eafaff; text-shadow: 0 1px 0 rgba(0, 0, 0, .50); }
+html[data-theme="dark"] .result-hero.g-s { background: linear-gradient(180deg, rgba(255, 180, 84, .22), rgba(9, 32, 46, .75)); }
+html[data-theme="dark"] .result-hero.g-s h1 { color: #ffc46e; }
+html[data-theme="dark"] .result-hero.g-a { background: linear-gradient(180deg, rgba(53, 201, 138, .20), rgba(9, 32, 46, .75)); }
+html[data-theme="dark"] .result-hero.g-a h1 { color: #8ff0c0; }
+html[data-theme="dark"] .result-hero.g-b h1 { color: #7fd8ff; }
+html[data-theme="dark"] .rw-row {
+  background: rgba(120, 215, 250, .08);
+  border-color: rgba(120, 215, 250, .14);
+}
+
+/* ---------- 遮罩 / 弹窗 / 提示 ---------- */
+html[data-theme="dark"] .loading-overlay { background: rgba(4, 14, 20, .80); }
+html[data-theme="dark"] .modal-backdrop { background: rgba(0, 0, 0, .62); }
+html[data-theme="dark"] .modal {
+  background: linear-gradient(180deg, rgba(18, 52, 72, .98), rgba(10, 33, 46, .94));
+  box-shadow: 0 26px 64px rgba(0, 0, 0, .70), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .modal::before {
+  background: linear-gradient(180deg, rgba(190, 245, 255, .10), rgba(190, 245, 255, 0) 42%);
+}
+html[data-theme="dark"] .toast {
+  background: linear-gradient(180deg, rgba(18, 52, 72, .97), rgba(10, 33, 46, .90));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .60), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .toast-ok { color: #8ff0c0; }
+html[data-theme="dark"] .toast-bad { color: #ffa3b3; }
+html[data-theme="dark"] .toast-warn { color: #ffc46e; }
+html[data-theme="dark"] .float {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .80), 0 1px 0 rgba(0, 0, 0, .60);
+}
+html[data-theme="dark"] .float.good { color: #8ff0c0; }
+html[data-theme="dark"] .float.bad { color: #ffa3b3; }
+html[data-theme="dark"] .celebrate-card {
+  background: linear-gradient(180deg, rgba(18, 52, 72, .98), rgba(10, 33, 46, .90));
+  box-shadow: 0 26px 64px rgba(0, 0, 0, .70), inset 0 1px 0 rgba(190, 240, 255, .20);
+}
+html[data-theme="dark"] .confetti { box-shadow: inset 0 0 5px rgba(190, 245, 255, .60); }
+
+/* ---------- 词性标记：深海蓝在暗底上会糊掉，换成浅青 ---------- */
+html[data-theme="dark"] .pos { color: #7fd8ff; }
+html[data-theme="dark"] .qo-text .pos,
+html[data-theme="dark"] .q-word .pos,
+html[data-theme="dark"] .q-word.cn .pos { color: #a8e8ff; }
+/* 反馈区仍要跟随状态色：这条比上面的通用 .pos 更具体，别删 */
+html[data-theme="dark"] .q-feedback .pos { color: inherit; }
+/* 落定的选项是亮绿/亮珊瑚，词性也必须跟着变深，否则浅青会糊在亮底上 */
+html[data-theme="dark"] .q-opt.right .pos,
+html[data-theme="dark"] .q-opt.wrong .pos { color: inherit; }
+
+/* ---------- 夜间 × 窄屏：玻璃模糊很贵，直接用更实的暗玻璃 ---------- */
+@media (max-width: 720px) {
+  html[data-theme="dark"] .panel {
+    background: linear-gradient(180deg, rgba(18, 52, 72, .96), rgba(10, 33, 46, .92));
+  }
+}
+
+/* ---------- 夜间 × 减少透明度：换成不透明暗底 ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme="dark"] .panel,
+  html[data-theme="dark"] .mode-card,
+  html[data-theme="dark"] .qcard,
+  html[data-theme="dark"] .quiz-intro,
+  html[data-theme="dark"] .spell-card,
+  html[data-theme="dark"] .modal,
+  html[data-theme="dark"] .hero-ov {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: #0b2230;
+  }
+}
+
