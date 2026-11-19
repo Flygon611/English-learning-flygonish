@@ -128,6 +128,17 @@
       "groupId": "en"
     },
     {
+      "id": "tem48",
+      "name": "专四专八",
+      "nameEn": "TEM-4/8",
+      "file": "tem48.json.gz",
+      "count": 12577,
+      "desc": "英语专业四、八级词汇表（上海外语教育出版社 2004）",
+      "difficulty": 4,
+      "bytes": 567214,
+      "groupId": "en"
+    },
+    {
       "id": "ielts",
       "name": "雅思",
       "nameEn": "IELTS",
