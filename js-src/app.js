@@ -92,7 +92,12 @@ class App {
     // 顶部栏的日夜切换（窄屏上隐藏，去设置页切）
     document.getElementById('btn-theme')?.addEventListener('click', () => this.toggleTheme());
 
-    // 音乐：先同步用户设置，再等第一次用户手势解锁播放
+    // 声音：先同步用户设置，再等第一次用户手势解锁播放。
+    // 音效音量/静音必须在启动时回放一次 —— audio.setVolume() 以前只在
+    // setSetting('volume') 里调用，刷新后 AudioManager.volume 会退回构造时的默认
+    // 0.7（设置页却仍显示存下来的百分比），用户改过的音量等于没保存。
+    audio.setVolume(this.st.volume);
+    audio.setMuted(!this.st.sound);
     this.applyMusicVolume();
     music.setEnabled(this.st.music);
     this._musicHintShown = false;
@@ -373,15 +378,15 @@ class App {
 
 const SCREENS = {
   home: () => import('./screens/home.js?v=f7ae5616'),
-  library: () => import('./screens/library.js?v=8baf07f6'),
-  search: () => import('./screens/search.js?v=cc205b01'),
-  dict: () => import('./screens/dict.js?v=d3b63bfc'),
+  library: () => import('./screens/library.js?v=dc56d720'),
+  search: () => import('./screens/search.js?v=55c77860'),
+  dict: () => import('./screens/dict.js?v=f8f30501'),
   quiz: () => import('./modes/quiz.js?v=8960b6c5'),
   cards: () => import('./modes/cards.js?v=b59755a7'),
   spell: () => import('./modes/spell.js?v=3d46af87'),
   stats: () => import('./screens/stats.js?v=d72d98e5'),
   settings: () => import('./screens/settings.js?v=93f25511'),
-  importer: () => import('./screens/importer.js?v=467080ed'),
+  importer: () => import('./screens/importer.js?v=80f48518'),
 };
 
 export const app = new App();

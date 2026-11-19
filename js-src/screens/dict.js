@@ -6,7 +6,7 @@
 import { h, icon, say, speechSupported, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, empty, stars } from '../ui/kit.js?v=2f24ea8c';
 import { getEntry, getMeta, searchAffix } from '../dict.js?v=6c5c5c70';
-import { langAttr, normalizeIPA } from '../session.js?v=47c6b758';
+import { drillSession, langAttr, normalizeIPA } from '../session.js?v=47c6b758';
 import { findBook } from '../vocab.js?v=4c022754';
 import { wordKey, MAX_STAR } from '../srs.js?v=e54c36c9';
 
@@ -35,7 +35,7 @@ export function render(app) {
     }),
     btn({
       label: '练这个词', iconName: 'target', size: 'sm', kind: 'primary',
-      onclick: () => app.go('quiz', { drill: { bookId, words: [word] } }),
+      onclick: () => drillOne(app, bookId, word),
     }),
   ]));
 
@@ -127,7 +127,7 @@ export function render(app) {
     if (e.pos && e.pos.length) {
       metaRow.append(h('div', { class: 'dm-row' }, [
         h('span', { class: 'dm-k', text: '词性' }),
-        h('span', { class: 'dm-v', text: e.pos.join('、') }),
+        h('span', { class: 'dm-v', text: e.pos.map((x) => POS_LABEL[x] || x).join('、') }),
       ]));
     }
     if (e.ipa) {
@@ -255,6 +255,28 @@ export function render(app) {
     }
 
     body.replaceChildren(...nodes);
+  }
+
+  /* ---- 「练这个词」：先构造完整会话，不能把裸对象丢给 quiz ----
+     modes/quiz.js 是 `session = app.currentParams?.drill || await launch(...)`，
+     直接把 drill 当 session 用，需要 pool / r / maxLives / fromSearch 等字段。
+     以前这里传的是 { bookId, words: [word] } —— 关卡页生命值显示 undefined，
+     点「开始」后 `S.r()` 抛 TypeError（且不在创建会话的 try/catch 内，界面毫无反应）。
+     这里照 screens/search.js 的做法，先 drillSession() 造好完整会话再交给 quiz。 */
+  async function drillOne(appRef, bookId2, word2) {
+    const overlay = h('div', { class: 'loading-overlay' }, [
+      h('div', { class: 'spinner' }),
+      h('p', { text: '正在准备…' }),
+    ]);
+    document.body.append(overlay);
+    try {
+      const ses = await drillSession(appRef, bookId2, [word2]);
+      await appRef.go('quiz', { drill: ses });
+    } catch (e) {
+      appRef.toast(String(e.message || e), 'bad');
+    } finally {
+      overlay.remove();
+    }
   }
 
   return wrap;

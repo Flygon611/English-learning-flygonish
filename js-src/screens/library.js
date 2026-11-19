@@ -180,7 +180,7 @@ export function render(app) {
 
     const updateCounts = () => {
       const active = selected.size === 0 ? words : words.filter((w) => selected.has(groupOf(w)));
-      const s = statsOf(active, progress, bookId, app.st.maxThreshold || MAX_STAR);
+      const s = statsOf(active, progress, bookId, app.st.masterThreshold || MAX_STAR);
       const due = dueCount(active, progress, bookId, now);
       selInfo.replaceChildren(
         h('span', {}, [h('b', { text: active.length.toLocaleString() }), ' 词可选']),
@@ -288,7 +288,7 @@ export function render(app) {
     const book = app.book();
     const letters = Array.from(selected);
     const choice = await app.modal({
-      title: 导出按拆分的词库,
+      title: '导出按拆分的词库',
       body: h('div', {}, [
         h('p', { text: '会生成一个 JSON 文件，结构为 { groups: { A: [...], B: [...] } }，可直接给别的程序用。' }),
         h('p', { class: 'muted', text: letters.length ? `范围：${letters.slice().sort().join(' ')}` : `范围：全部（不分${groupsFor(book).length > 2 ? '组' : '字母'}）` }),

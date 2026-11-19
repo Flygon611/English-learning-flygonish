@@ -2,7 +2,8 @@
 
 import { h, icon, fmtBytes, glossNodes } from '../util.js?v=8b589faf';
 import { btn, panel, empty, statBox } from '../ui/kit.js?v=2f24ea8c';
-import { parseImport, addUserBook, letterBreakdown, allBooks } from '../vocab.js?v=4c022754';
+import { parseImport, addUserBook, removeUserBook, letterBreakdown, allBooks } from '../vocab.js?v=4c022754';
+import { store } from '../core/storage.js?v=c9ee2a15';
 import { normalizeIPA } from '../session.js?v=47c6b758';
 
 const SAMPLE = `# 1) 制表符 / 逗号 / 竖线 / 冒号分隔（最常见）
@@ -108,9 +109,14 @@ export function render(app) {
     const name = (nameInput.value || '').trim() || `自定义词库 ${allBooks().filter((b) => !b.builtin).length + 1}`;
     const id = 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
     addUserBook({ id, name, words: parsed, source: '用户导入' });
-    try {
-      app.syncUserBooks();
-    } catch (e) {
+    app.syncUserBooks();
+    /* 配额校验：store.set() 内部自己 catch 了 localStorage 的 QuotaExceededError，
+       只 console.warn 并返回 false，**不会向外抛异常** —— 所以外面拿 try/catch
+       包 syncUserBooks() 永远捕获不到失败。必须回读存档确认真的写进去了，
+       否则会出现「提示已保存、当前会话能用、刷新后词库消失、进度键变孤儿」。 */
+    const persisted = (store.get('userBooks', []) || []).some((b) => b && b.id === id);
+    if (!persisted) {
+      removeUserBook(id);          // 回滚内存里刚登记的这条，别留下"看得见存不住"的状态
       app.toast('保存失败：浏览器本地空间不足，可尝试减小词库', 'bad', 5000);
       return;
     }

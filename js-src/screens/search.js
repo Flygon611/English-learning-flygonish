@@ -11,9 +11,9 @@ const LIMIT = 200;
 export function render(app) {
   const wrap = h('div', { class: 'screen-body search-body' });
 
-  // 界面状态（不持久化，每次进来重置）
+  // 界面状态（不持久化，每次进来重置；q 例外：从词条详情点「返回」时会带着 q 回来）
   const ui = {
-    q: '',
+    q: app.currentParams?.q || '',
     scope: 'all',
     onlyStudied: false,
     results: [],
@@ -118,15 +118,18 @@ export function render(app) {
     // 词缀表取不到不该连累整页搜索，失败就当没有词缀
     ui.affixes = await searchAffix(q).catch(() => []);
 
-    // 小结
+    // 小结。注意要先调 mergeResults() 拿到「这一轮」合并后的条数：
+    // 以前这里读 ui.mergedCount，而它只在后面的 renderResults() 里才更新，
+    // 于是连续搜索时显示的是上一轮的数字。
+    const rows = mergeResults();
     if (!ui.results.length && !ui.affixes.length) {
       summaryRow.replaceChildren(h('div', { class: 'muted', text: `没有找到「${q}」` }));
     } else {
       const books = summarize(ui.results);
       summaryRow.replaceChildren(
         h('div', { class: 'search-stat' }, [
-          h('b', { text: String(ui.results.length ? (ui.mergedCount || ui.results.length) : ui.affixes.length) }),
-          h('span', { text: ui.results.length ? ' 条结果' : ' 个词缀' }),
+          h('b', { text: String(rows.length || ui.affixes.length) }),
+          h('span', { text: rows.length ? ' 条结果' : ' 个词缀' }),
           ui.affixes.length && ui.results.length ? h('span', { class: 'muted', text: ` +${ui.affixes.length} 个词缀` }) : null,
           h('span', { class: 'muted', text: ` · ${ms}ms` }),
         ]),
@@ -166,11 +169,12 @@ export function render(app) {
     resultBox.append(box);
   }
 
-  function renderResults() {
-    if (!ui.results.length) { resultBox.replaceChildren(); if (ui.affixes && ui.affixes.length) renderAffix(); return; }
-    /* 同一个词可能同时出现在四六级/专四专八里。查词典时应该是一条词条，
-       底下标明「属于：四级、六级、专四」，而不是三条重复记录 —— 这里按
-       小写词形合并，词库名收集成一个数组。 */
+  /* 同一个词可能同时出现在四六级/专四专八里。查词典时应该是一条词条，
+     底下标明「属于：四级、六级、专四」，而不是三条重复记录 —— 这里按
+     小写词形合并，词库名收集成一个数组。
+     抽成独立函数，是为了让「N 条结果」小结在 renderResults() 之前就能拿到
+     这一轮合并后的数量（见 runSearch 里的说明）。 */
+  function mergeResults() {
     const merged = new Map();
     for (const r of ui.results) {
       const key = `${r.entry.lang}|${String(r.entry.w.w).toLowerCase()}`;
@@ -192,6 +196,12 @@ export function render(app) {
     }
     const rows = [...merged.values()];
     ui.mergedCount = rows.length;
+    return rows;
+  }
+
+  function renderResults() {
+    if (!ui.results.length) { resultBox.replaceChildren(); if (ui.affixes && ui.affixes.length) renderAffix(); return; }
+    const rows = mergeResults();
 
     const list = h('div', { class: 'search-list' });
     for (const r of rows) {
@@ -204,7 +214,7 @@ export function render(app) {
           // 点到里面的按钮时不触发跳转
           if (e.target.closest('button')) return;
           app.play('click');
-          app.go('dict', { word: w.w, bookId: r.entry.book, lang: r.entry.lang, q: ui.query });
+          app.go('dict', { word: w.w, bookId: r.entry.book, lang: r.entry.lang, q: ui.q });
         },
       }, [
         h('div', { class: 'sr-main' }, [
