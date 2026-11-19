@@ -129,13 +129,13 @@
     },
     {
       "id": "tem48",
-      "name": "专四专八（综英）",
+      "name": "专四专八",
       "nameEn": "TEM-4/8",
       "file": "tem48.json.gz",
-      "count": 12577,
+      "count": 12537,
       "desc": "英语专业四、八级词汇表（上海外语教育出版社 2004）",
       "difficulty": 4,
-      "bytes": 567214,
+      "bytes": 568604,
       "groupId": "en"
     },
     {
